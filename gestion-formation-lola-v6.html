@@ -1,0 +1,1391 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lola Formation – Solis System</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,600;1,300&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#18181b;--ink-mid:#52525b;--ink-light:#a1a1aa;
+  --bg:#f9f9f7;--surface:#fff;--border:#e4e4e7;--border-s:#d1d1d6;
+  --teal:#0d7377;--teal-p:#e6f4f4;--teal-m:#14a085;
+  --amber:#d97706;--amber-p:#fef3c7;
+  --red:#dc2626;--red-p:#fee2e2;
+  --blue:#2563eb;--blue-p:#dbeafe;
+  --violet:#7c3aed;--violet-p:#ede9fe;
+  --green:#16a34a;--green-p:#dcfce7;
+  --r:10px;--rs:6px;
+  --sh:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+  --shl:0 12px 40px rgba(0,0,0,.12);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);display:flex;min-height:100vh;font-size:14px;line-height:1.5}
+.sb{width:228px;flex-shrink:0;background:var(--ink);min-height:100vh;position:fixed;top:0;bottom:0;left:0;display:flex;flex-direction:column;z-index:50}
+.sb-logo{padding:24px 20px 20px;border-bottom:1px solid rgba(255,255,255,.08)}
+.sb-logo .wm{font-family:'Fraunces',serif;font-size:1.25rem;color:#fff;display:block}
+.sb-logo .sub{font-size:.68rem;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:1.2px;margin-top:2px;display:block}
+.nav{flex:1;padding:12px 0;overflow-y:auto}
+.ns{padding:16px 20px 6px;font-size:.65rem;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,.25)}
+.nb{width:100%;display:flex;align-items:center;gap:9px;padding:9px 20px;background:none;border:none;color:rgba(255,255,255,.55);font-family:'DM Sans',sans-serif;font-size:.84rem;cursor:pointer;border-left:2px solid transparent;text-align:left;line-height:1.4;transition:all .15s}
+.nb:hover{color:rgba(255,255,255,.85);background:rgba(255,255,255,.04)}
+.nb.active{color:#fff;background:rgba(255,255,255,.07);border-left-color:var(--teal-m)}
+.nb .ico{font-size:.95rem;width:18px;text-align:center;flex-shrink:0}
+.mbadge{display:none;align-items:center;justify-content:center;min-width:18px;height:18px;border-radius:99px;background:var(--red);color:#fff;font-size:.65rem;font-weight:700;padding:0 5px;margin-left:auto}
+.sb-foot{padding:14px 20px;border-top:1px solid rgba(255,255,255,.08);font-size:.72rem;color:rgba(255,255,255,.25);line-height:1.6}
+.sync-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--ink-light);margin-right:5px;vertical-align:middle}
+.sync-dot.ok{background:var(--green)}.sync-dot.syncing{background:var(--amber);animation:pulse 1s infinite}.sync-dot.err{background:var(--red)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.main{margin-left:228px;flex:1;display:flex;flex-direction:column;min-width:0}
+.topbar{height:52px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 28px;gap:12px;position:sticky;top:0;z-index:40}
+.topbar-title{font-family:'Fraunces',serif;font-size:1rem;font-weight:300;flex:1}
+.tpill{display:inline-flex;align-items:center;padding:3px 10px;border-radius:99px;font-size:.7rem;font-weight:600;text-transform:uppercase;background:var(--teal-p);color:var(--teal)}
+.content{padding:28px;flex:1}
+.tab{display:none}.tab.active{display:block}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px}
+.sc{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px 20px;box-shadow:var(--sh)}
+.sc .si{font-size:1.4rem;margin-bottom:8px}.sc .sv{font-family:'Fraunces',serif;font-size:2rem;font-weight:600;line-height:1}.sc .sl{font-size:.7rem;text-transform:uppercase;color:var(--ink-light);margin-top:4px}
+.tbl-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh);margin-bottom:20px}
+table{width:100%;border-collapse:collapse}
+thead{background:var(--bg)}
+th{text-align:left;padding:9px 14px;font-size:.68rem;text-transform:uppercase;color:var(--ink-light);font-weight:600;border-bottom:1px solid var(--border)}
+td{padding:11px 14px;font-size:.83rem;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:var(--bg)}
+.tbl-empty{text-align:center;color:var(--ink-light);padding:44px!important}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:99px;font-size:.68rem;font-weight:600;text-transform:uppercase;white-space:nowrap}
+.b-grey{background:var(--bg);color:var(--ink-mid);border:1px solid var(--border)}.b-amber{background:var(--amber-p);color:var(--amber)}.b-blue{background:var(--blue-p);color:var(--blue)}.b-teal{background:var(--teal-p);color:var(--teal)}.b-green{background:var(--green-p);color:var(--green)}.b-red{background:var(--red-p);color:var(--red)}.b-violet{background:var(--violet-p);color:var(--violet)}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:6px 13px;border-radius:var(--rs);border:1px solid transparent;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.8rem;font-weight:500;transition:all .12s;white-space:nowrap}
+.btn-primary{background:var(--teal);color:#fff}.btn-primary:hover{background:var(--teal-m)}
+.btn-ghost{background:transparent;color:var(--ink-mid);border-color:var(--border)}.btn-ghost:hover{background:var(--bg)}
+.btn-danger{background:var(--red-p);color:var(--red)}.btn-danger:hover{background:#fecaca}
+.btn-sm{padding:4px 9px;font-size:.75rem}.btn:disabled{opacity:.5;cursor:not-allowed}
+.fg{display:flex;flex-direction:column;gap:4px;margin-bottom:14px}
+.fg2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+label{font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--ink-mid)}
+input[type=text],input[type=email],input[type=date],input[type=number],input[type=password],select,textarea{padding:8px 10px;border:1.5px solid var(--border);border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:.84rem;color:var(--ink);background:var(--surface);width:100%;transition:border-color .15s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--teal)}
+textarea{min-height:72px;resize:vertical}
+.req{color:var(--red)}
+.alert{padding:11px 14px;border-radius:var(--rs);font-size:.82rem;line-height:1.5;display:flex;gap:9px;margin-bottom:14px}
+.a-info{background:var(--blue-p);color:#1e3a8a;border-left:3px solid var(--blue)}.a-success{background:var(--green-p);color:#14532d;border-left:3px solid var(--green)}.a-warning{background:var(--amber-p);color:#78350f;border-left:3px solid var(--amber)}.a-danger{background:var(--red-p);color:#7f1d1d;border-left:3px solid var(--red)}
+.cl{list-style:none;display:flex;flex-direction:column;gap:6px}
+.cl li{display:flex;align-items:center;gap:9px;padding:8px 11px;border-radius:var(--rs);border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:.82rem;user-select:none}
+.cl li:hover{background:var(--bg)}.cl li.done{background:var(--bg);color:var(--ink-light);text-decoration:line-through}
+.cl li input[type=checkbox]{accent-color:var(--teal);width:14px;height:14px;flex-shrink:0}
+.prog-wrap{height:5px;background:var(--border);border-radius:99px;overflow:hidden;margin-top:8px}
+.prog-fill{height:100%;background:var(--teal-m);border-radius:99px;transition:width .4s}
+.prog-label{font-size:.72rem;color:var(--ink-light);margin-top:4px}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;align-items:center;justify-content:center}
+.overlay.open{display:flex}
+.modal{background:var(--surface);border-radius:14px;width:700px;max-width:96vw;max-height:92vh;overflow-y:auto;box-shadow:var(--shl);animation:fu .18s ease}
+.modal-lg{width:860px}
+@keyframes fu{from{transform:translateY(-10px);opacity:0}}
+.modal-head{padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.modal-head h2{font-family:'Fraunces',serif;font-size:1.1rem;font-weight:300}
+.modal-body{padding:20px 24px}
+.modal-foot{padding:14px 24px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;background:var(--bg);border-radius:0 0 14px 14px;flex-wrap:wrap}
+.btn-x{background:none;border:none;cursor:pointer;font-size:1.1rem;color:var(--ink-light);padding:2px 6px;border-radius:4px}.btn-x:hover{color:var(--ink)}
+.pipeline{display:flex;align-items:center;background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:4px;margin-bottom:20px}
+.ps{flex:1;text-align:center;padding:7px 6px;border-radius:7px;font-size:.72rem;font-weight:500;color:var(--ink-light)}
+.ps.done{background:var(--teal-p);color:var(--teal)}.ps.current{background:var(--teal);color:#fff;font-weight:600}
+.ps .pi{display:block;font-size:.9rem;margin-bottom:2px}.pa{color:var(--border-s);font-size:.7rem;flex-shrink:0;padding:0 2px}
+.psteps{display:flex;flex-direction:column}.pstep{display:flex;gap:12px}
+.pstep-line{display:flex;flex-direction:column;align-items:center;flex-shrink:0}
+.pstep-dot{width:28px;height:28px;border-radius:50%;background:var(--teal-p);border:2px solid var(--teal-m);color:var(--teal);font-size:.72rem;font-weight:700;display:flex;align-items:center;justify-content:center}
+.pstep-dot.done{background:var(--teal);color:#fff;border-color:var(--teal)}.pstep-dot.warn{background:var(--amber-p);border-color:var(--amber);color:var(--amber)}
+.pstep-con{width:2px;flex:1;min-height:18px;background:var(--border);margin:2px 0}
+.pstep-body{padding:2px 0 20px;flex:1}
+.pstep-title{font-weight:600;font-size:.85rem;color:var(--ink);margin-bottom:3px}
+.pstep-desc{font-size:.78rem;color:var(--ink-mid);line-height:1.5}
+.timeline{display:flex;flex-direction:column;gap:8px}
+.tl-item{display:flex;gap:10px;align-items:flex-start;background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);padding:11px 13px}
+.tl-ico{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0}
+.tico-teal{background:var(--teal-p)}.tico-amber{background:var(--amber-p)}.tico-red{background:var(--red-p)}
+.tl-title{font-weight:600;font-size:.82rem}.tl-date{font-size:.72rem;color:var(--ink-light);margin-top:1px}
+.pills{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+.pill{padding:5px 13px;border-radius:99px;border:1px solid var(--border);background:var(--surface);font-size:.75rem;cursor:pointer;color:var(--ink-mid);font-family:'DM Sans',sans-serif}
+.pill.active{background:var(--teal);color:#fff;border-color:var(--teal)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px 20px;box-shadow:var(--sh)}
+.stag-tag{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;font-size:.78rem}
+.stag-rm{background:none;border:none;cursor:pointer;color:var(--ink-light);font-size:.8rem;line-height:1;padding:0 2px}.stag-rm:hover{color:var(--red)}
+.tags-wrap{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.divider{height:1px;background:var(--border);margin:20px 0}
+.sec{font-family:'Fraunces',serif;font-size:.95rem;font-weight:300;color:var(--ink);margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.action-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+a{color:var(--teal);text-decoration:none}a:hover{text-decoration:underline}
+.cr{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border:1px solid var(--border);border-radius:var(--rs);background:var(--surface);gap:10px;margin-bottom:7px}
+.cr-l{display:flex;align-items:center;gap:9px;font-size:.82rem;flex:1}.cr-r{display:flex;align-items:center;gap:7px;flex-shrink:0}
+.cr.sent{background:var(--bg)}.cr.sent .cr-l{color:var(--ink-light)}
+.mail-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:10px;box-shadow:var(--sh)}
+.mail-card:hover{border-color:var(--teal-m)}.mail-card.sent{opacity:.5}
+.mc-head{display:flex;align-items:center;gap:12px;padding:14px 18px;background:var(--bg);cursor:pointer;user-select:none}
+.mc-ico{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
+.mt-convoc{background:var(--blue-p)}.mt-preform{background:var(--violet-p)}.mt-lien{background:var(--amber-p)}.mt-sat{background:var(--green-p)}.mt-resp{background:var(--teal-p)}
+.mc-meta{flex:1}.mc-title{font-weight:600;font-size:.85rem}.mc-sub{font-size:.72rem;color:var(--ink-light);margin-top:1px}.mc-to{font-size:.75rem;color:var(--ink-mid);margin-top:3px}
+.mc-body{display:none;padding:18px 20px;border-top:1px solid var(--border)}.mc-body.open{display:block}
+.mail-preview{background:var(--bg);border:1px solid var(--border);border-radius:var(--rs);padding:18px;font-size:.82rem;line-height:1.7;white-space:pre-wrap;max-height:280px;overflow-y:auto;margin-bottom:12px}
+.mail-subject-row{font-size:.8rem;font-weight:600;color:var(--ink-mid);margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.mail-edit-area{width:100%;min-height:200px;padding:14px;border:1.5px solid var(--teal);border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:.82rem;line-height:1.7;resize:vertical;display:none;margin-bottom:12px}
+.udot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.u-hot{background:var(--red)}.u-soon{background:var(--amber)}.u-ok{background:var(--green)}
+.filter-bar{display:flex;gap:8px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:10px 14px;margin-bottom:16px;flex-wrap:wrap}
+.tpl-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);margin-bottom:12px;overflow:hidden;box-shadow:var(--sh)}
+.tpl-head{display:flex;align-items:center;gap:12px;padding:14px 18px;background:var(--bg);cursor:pointer;user-select:none}
+.tpl-body{display:none;padding:18px 20px;border-top:1px solid var(--border)}.tpl-body.open{display:block}
+.tpl-mode{display:flex;gap:6px;margin-bottom:14px;padding:4px;background:var(--bg);border:1px solid var(--border);border-radius:var(--rs)}
+.tpl-mode-btn{flex:1;padding:5px 0;border:none;border-radius:5px;font-family:'DM Sans',sans-serif;font-size:.78rem;cursor:pointer;background:transparent;color:var(--ink-mid);transition:all .15s}
+.tpl-mode-btn.active{background:var(--surface);color:var(--teal);font-weight:600;box-shadow:var(--sh)}
+.var-chip{display:inline-flex;align-items:center;padding:2px 8px;background:var(--teal-p);color:var(--teal);border-radius:4px;font-size:.72rem;font-family:monospace;cursor:pointer;margin:2px}
+.var-chip:hover{background:var(--teal);color:#fff}
+.brevo-dot{display:inline-flex;align-items:center;gap:5px;font-size:.75rem;padding:3px 10px;border-radius:99px;font-weight:500}
+.brevo-ok{background:var(--green-p);color:var(--green)}.brevo-nc{background:var(--bg);color:var(--ink-light);border:1px solid var(--border)}
+/* Steps install */
+.install-step{display:flex;gap:14px;margin-bottom:20px}
+.install-num{width:28px;height:28px;border-radius:50%;background:var(--teal);color:#fff;font-weight:700;font-size:.8rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.install-body{flex:1}
+.install-title{font-weight:600;font-size:.9rem;margin-bottom:4px}
+.install-desc{font-size:.82rem;color:var(--ink-mid);line-height:1.6}
+code{background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:1px 6px;font-family:monospace;font-size:.82rem;color:var(--ink)}
+pre{background:var(--ink);color:#e4e4e7;border-radius:var(--rs);padding:14px 16px;font-size:.78rem;line-height:1.7;overflow-x:auto;margin:8px 0}
+::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-thumb{background:var(--border-s);border-radius:99px}
+</style>
+</head>
+<body>
+
+<aside class="sb">
+  <div class="sb-logo"><span class="wm">Lola Formation</span><span class="sub">Solis System</span></div>
+  <nav class="nav" id="sidebar-nav">
+    <div class="ns">Tableau de bord</div>
+    <button class="nb active" data-tab="dashboard"><span class="ico">&#127968;</span>Vue d'ensemble</button>
+    <div class="ns">Formations</div>
+    <button class="nb" data-tab="creer"><span class="ico">&#43;</span>Creer une formation</button>
+    <button class="nb" data-tab="formations"><span class="ico">&#128203;</span>Toutes les formations</button>
+    <button class="nb" data-tab="stagiaires"><span class="ico">&#128101;</span>Stagiaires</button>
+    <div class="ns">Communication</div>
+    <button class="nb" data-tab="messagerie"><span class="ico">&#128236;</span>Messagerie<span class="mbadge" id="mail-badge">0</span></button>
+    <button class="nb" data-tab="templates"><span class="ico">&#128196;</span>Modeles de mails</button>
+    <div class="ns">Qualite</div>
+    <button class="nb" data-tab="satisfaction"><span class="ico">&#11088;</span>Enquetes satisfaction</button>
+    <button class="nb" data-tab="abandons"><span class="ico">&#128680;</span>Abandons</button>
+    <button class="nb" data-tab="amelioration"><span class="ico">&#128260;</span>Amelioration continue</button>
+    <div class="ns">Equipe</div>
+    <button class="nb" data-tab="formateurs"><span class="ico">&#127891;</span>Formateurs</button>
+    <div class="ns">Configuration</div>
+    <button class="nb" data-tab="parametres"><span class="ico">&#9881;</span>Brevo &amp; Google Sheets</button>
+    <button class="nb" data-tab="installation"><span class="ico">&#128218;</span>Guide installation</button>
+  </nav>
+  <div class="sb-foot">
+    <span class="sync-dot" id="sync-dot"></span><span id="sync-label">Non connecte</span><br>
+    Solis System &middot; v6
+  </div>
+</aside>
+
+<div class="main">
+  <header class="topbar">
+    <div class="topbar-title" id="topbar-title">Vue d'ensemble</div>
+    <span class="tpill">&#10003; Qualiopi</span>
+    <span class="brevo-dot brevo-nc" id="brevo-global-status">&#9679; Brevo non configure</span>
+    <button class="btn btn-ghost btn-sm" id="btn-sync-now" title="Synchroniser avec Google Sheets">&#8635; Sync</button>
+  </header>
+  <div class="content">
+
+  <!-- DASHBOARD -->
+  <div class="tab active" id="tab-dashboard">
+    <div id="sheets-warning" style="display:none" class="alert a-warning">
+      Google Sheets non configure — les donnees ne sont pas sauvegardees. <button class="btn btn-ghost btn-sm" onclick="goTab('parametres')" style="margin-left:8px">Configurer</button>
+    </div>
+    <div class="stats-row">
+      <div class="sc"><div class="si">&#128203;</div><div class="sv" id="stat-actives">0</div><div class="sl">Formations actives</div></div>
+      <div class="sc"><div class="si">&#128101;</div><div class="sv" id="stat-stags">0</div><div class="sl">Stagiaires</div></div>
+      <div class="sc"><div class="si">&#128236;</div><div class="sv" id="stat-mails">0</div><div class="sl">Mails a envoyer</div></div>
+      <div class="sc"><div class="si">&#10003;</div><div class="sv" id="stat-terminees">0</div><div class="sl">Formations terminees</div></div>
+    </div>
+    <div class="sec">Formations a venir</div>
+    <div class="tbl-wrap"><table><thead><tr><th>Entreprise</th><th>Module</th><th>Date</th><th>Formateur</th><th>Statut</th><th>Convocation</th><th></th></tr></thead>
+    <tbody id="dash-tbody"><tr><td colspan="7" class="tbl-empty">Aucune formation</td></tr></tbody></table></div>
+    <div class="sec">Activite recente</div>
+    <div class="timeline" id="tl-activite">
+      <div class="tl-item"><div class="tl-ico tico-teal">&#128216;</div><div><div class="tl-title">Application chargee</div><div class="tl-date">Aujourd'hui</div></div></div>
+    </div>
+  </div>
+
+  <!-- CREER -->
+  <div class="tab" id="tab-creer">
+    <div class="two-col" style="align-items:start">
+      <div>
+        <div class="sec">Analyse des besoins</div>
+        <div class="fg2">
+          <div class="fg"><label>Entreprise <span class="req">*</span></label><input type="text" id="nf-entreprise" placeholder="Nom de l'entreprise"></div>
+          <div class="fg"><label>Contact</label><input type="text" id="nf-contact" placeholder="Prenom Nom"></div>
+        </div>
+        <div class="fg2">
+          <div class="fg"><label>Email <span class="req">*</span></label><input type="email" id="nf-email" placeholder="contact@entreprise.fr"></div>
+          <div class="fg"><label>Tel</label><input type="text" id="nf-tel" placeholder="06 00 00 00 00"></div>
+        </div>
+        <div class="fg2">
+          <div class="fg"><label>Module <span class="req">*</span></label><select id="nf-module"><option value="">-- Choisir --</option><option>Module Tarif</option><option>Module Comptabilite</option><option>Gestion administrative</option><option>Autres modules</option></select></div>
+          <div class="fg"><label>Formateur <span class="req">*</span></label><select id="nf-formateur"><option value="">-- Choisir --</option><option>Aurelien Bahnous</option><option>Sebastien Curnillon</option><option>Bruno Cadene</option></select></div>
+        </div>
+        <div class="fg2">
+          <div class="fg"><label>Date <span class="req">*</span></label><input type="date" id="nf-date"></div>
+          <div class="fg"><label>Mode</label><select id="nf-mode"><option>Presentiel</option><option>A distance</option></select></div>
+        </div>
+        <div class="fg"><label>Financeur</label><input type="text" id="nf-financeur" placeholder="OPCO, CPF..."></div>
+        <div class="fg"><label>Besoins / niveaux</label><textarea id="nf-notes" placeholder="Niveau des stagiaires, besoins specifiques..."></textarea></div>
+        <div class="divider"></div>
+        <div class="sec">Stagiaires</div>
+        <div class="tags-wrap" id="stag-tags"></div>
+        <div style="display:flex;gap:7px"><input type="text" id="stag-input" placeholder="Prenom Nom" style="flex:1"><button class="btn btn-ghost" id="btn-add-stag">+ Ajouter</button></div>
+      </div>
+      <div>
+        <div class="sec">Checklist qualite</div>
+        <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;color:var(--ink-light);margin-bottom:8px">Analyse &amp; Devis</div>
+        <ul class="cl">
+          <li><input type="checkbox"> Analyse de l'organisation entreprise effectuee</li>
+          <li><input type="checkbox"> Devis redige et valide</li>
+          <li><input type="checkbox"> Convention signee</li>
+          <li><input type="checkbox"> Niveaux definis avec le commercial</li>
+          <li><input type="checkbox"> Niveaux confirmes par le formateur</li>
+        </ul>
+        <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;color:var(--ink-light);margin:14px 0 8px">Questionnaire pre-formation</div>
+        <ul class="cl">
+          <li><input type="checkbox"> Grille des acquis envoyee (J-2)</li>
+          <li><input type="checkbox"> Reponses analysees par le formateur</li>
+        </ul>
+        <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;color:var(--ink-light);margin:14px 0 8px">Convocations</div>
+        <ul class="cl">
+          <li><input type="checkbox"> Convocation + programme envoyes (J-2)</li>
+          <li><input type="checkbox"> Rappel responsable envoye (J-2)</li>
+          <li><input type="checkbox"> Lien prise en main envoye (J-1 distanciel)</li>
+        </ul>
+        <div class="prog-wrap"><div class="prog-fill" id="cl-prog" style="width:0%"></div></div>
+        <div class="prog-label" id="cl-count">0 / 9 etapes</div>
+        <div class="divider"></div>
+        <button class="btn btn-primary" id="btn-creer" style="width:100%">Creer la formation</button>
+        <button class="btn btn-ghost" id="btn-reset" style="width:100%;margin-top:7px">Reinitialiser</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FORMATIONS -->
+  <div class="tab" id="tab-formations">
+    <div class="action-bar"><div class="sec" style="margin:0;border:none;padding:0">Toutes les formations</div><button class="btn btn-primary btn-sm" id="btn-goto-creer">+ Nouvelle</button></div>
+    <div class="pills" id="pills-formations">
+      <button class="pill active" data-filter="all">Toutes</button>
+      <button class="pill" data-filter="planifiee">Planifiees</button>
+      <button class="pill" data-filter="convocations">Convocations</button>
+      <button class="pill" data-filter="en-cours">En cours</button>
+      <button class="pill" data-filter="terminee">Terminees</button>
+    </div>
+    <div class="tbl-wrap"><table><thead><tr><th>Entreprise</th><th>Module</th><th>Date</th><th>Formateur</th><th>Stagiaires</th><th>Statut</th><th>Actions</th></tr></thead>
+    <tbody id="f-tbody"><tr><td colspan="7" class="tbl-empty">Aucune formation</td></tr></tbody></table></div>
+  </div>
+
+  <!-- STAGIAIRES -->
+  <div class="tab" id="tab-stagiaires">
+    <div class="sec">Suivi des stagiaires</div>
+    <div class="tbl-wrap"><table><thead><tr><th>Nom</th><th>Entreprise</th><th>Module</th><th>Date</th><th>Convocation</th><th>Pre-formation</th><th>Satisfaction</th></tr></thead>
+    <tbody id="s-tbody"><tr><td colspan="7" class="tbl-empty">Aucun stagiaire</td></tr></tbody></table></div>
+  </div>
+
+  <!-- MESSAGERIE -->
+  <div class="tab" id="tab-messagerie">
+    <div class="action-bar" style="margin-bottom:14px">
+      <div>
+        <div style="font-family:'Fraunces',serif;font-size:1rem;font-weight:300">Centre de messagerie</div>
+        <div style="font-size:.75rem;color:var(--ink-light);margin-top:2px">Previsualiser &bull; Modifier les variables &bull; Envoyer via Brevo</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span id="mail-pending-lbl" style="font-size:.8rem;color:var(--amber);font-weight:600"></span>
+        <button class="btn btn-ghost btn-sm" onclick="goTab('templates')">&#128196; Modeles</button>
+        <button class="btn btn-primary btn-sm" id="btn-scan">&#8635; Actualiser</button>
+      </div>
+    </div>
+    <div class="filter-bar">
+      <span style="font-size:.72rem;font-weight:600;color:var(--ink-light);text-transform:uppercase">Filtrer :</span>
+      <div class="pills" id="pills-mails" style="margin:0">
+        <button class="pill active" data-mf="all">Tous</button>
+        <button class="pill" data-mf="hot">Urgents</button>
+        <button class="pill" data-mf="convoc">Convocations</button>
+        <button class="pill" data-mf="preform">Pre-formation</button>
+        <button class="pill" data-mf="lien">Distanciel</button>
+        <button class="pill" data-mf="sat">Satisfaction</button>
+        <button class="pill" data-mf="sent">Envoyes</button>
+      </div>
+    </div>
+    <div id="mail-list"><div style="text-align:center;padding:60px;color:var(--ink-light)"><div style="font-size:2rem;margin-bottom:12px">&#128236;</div><div style="font-weight:600;margin-bottom:6px">Aucun mail en attente</div></div></div>
+  </div>
+
+  <!-- TEMPLATES -->
+  <div class="tab" id="tab-templates">
+    <div class="action-bar" style="margin-bottom:6px">
+      <div>
+        <div style="font-family:'Fraunces',serif;font-size:1rem;font-weight:300">Modeles de mails</div>
+        <div style="font-size:.75rem;color:var(--ink-light);margin-top:2px">Mode Texte ou Template Brevo (ID) par type de mail</div>
+      </div>
+      <button class="btn btn-primary btn-sm" id="btn-save-all-tpl">&#10003; Sauvegarder</button>
+    </div>
+    <div class="alert a-info" style="margin-bottom:20px">
+      <div><strong>Variables disponibles</strong> &mdash; cliquez pour copier :
+        <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:4px">
+          <span class="var-chip" data-var="{{prenom}}">{{prenom}}</span>
+          <span class="var-chip" data-var="{{module}}">{{module}}</span>
+          <span class="var-chip" data-var="{{date}}">{{date}}</span>
+          <span class="var-chip" data-var="{{formateur}}">{{formateur}}</span>
+          <span class="var-chip" data-var="{{entreprise}}">{{entreprise}}</span>
+          <span class="var-chip" data-var="{{stagiaires}}">{{stagiaires}}</span>
+          <span class="var-chip" data-var="{{lien_pem}}">{{lien_pem}}</span>
+          <span class="var-chip" data-var="{{signature}}">{{signature}}</span>
+        </div>
+      </div>
+    </div>
+    <div id="tpl-list"></div>
+  </div>
+
+  <!-- SATISFACTION -->
+  <div class="tab" id="tab-satisfaction">
+    <div class="sec">Enquetes de satisfaction</div>
+    <div class="three-col" style="margin-bottom:24px">
+      <div class="card"><div style="font-weight:600;margin-bottom:6px">Questionnaire Stagiaire</div><div style="font-size:.78rem;color:var(--ink-mid);margin-bottom:12px">Fin formation - Relance J+7</div><a href="https://forms.gle/v2bPpDSXpLsKNu8D6" target="_blank" class="btn btn-ghost btn-sm">Ouvrir</a></div>
+      <div class="card"><div style="font-weight:600;margin-bottom:6px">Questionnaire Formateur</div><div style="font-size:.78rem;color:var(--ink-mid);margin-bottom:12px">Fin formation - Relance J+7</div><a href="https://forms.gle/oYq3RJT16xBgm44P9" target="_blank" class="btn btn-ghost btn-sm">Ouvrir</a></div>
+      <div class="card"><div style="font-weight:600;margin-bottom:6px">QCM Validation acquis</div><div style="font-size:.78rem;color:var(--ink-mid);margin-bottom:12px">En cours de formation</div><a href="https://forms.office.com/e/DhpL60Baak" target="_blank" class="btn btn-ghost btn-sm">Ouvrir</a></div>
+    </div>
+    <div class="sec">Suivi des relances</div>
+    <div class="tbl-wrap"><table><thead><tr><th>Formation</th><th>Type</th><th>Date formation</th><th>Relance J+7</th><th>Statut</th><th>Action</th></tr></thead>
+    <tbody id="rel-tbody"><tr><td colspan="6" class="tbl-empty">Aucune relance</td></tr></tbody></table></div>
+  </div>
+
+  <!-- ABANDONS -->
+  <div class="tab" id="tab-abandons">
+    <div class="two-col" style="align-items:start">
+      <div>
+        <div class="sec">Procedure prevention</div>
+        <div class="psteps">
+          <div class="pstep"><div class="pstep-line"><div class="pstep-dot done">1</div><div class="pstep-con"></div></div><div class="pstep-body"><div class="pstep-title">Analyse des besoins</div><div class="pstep-desc">Organisation analysee, modules adaptes.</div></div></div>
+          <div class="pstep"><div class="pstep-line"><div class="pstep-dot done">2</div><div class="pstep-con"></div></div><div class="pstep-body"><div class="pstep-title">Convocations J-2</div><div class="pstep-desc">Rappel objectifs, questionnaire, lien distanciel J-1.</div></div></div>
+          <div class="pstep"><div class="pstep-line"><div class="pstep-dot done">3</div></div><div class="pstep-body"><div class="pstep-title">Implication en cours</div><div class="pstep-desc">Mise en situation reelle du logiciel.</div></div></div>
+        </div>
+      </div>
+      <div>
+        <div class="sec">Declarer un abandon</div>
+        <div class="fg"><label>Formation</label><select id="ab-formation"><option value="">-- Choisir --</option></select></div>
+        <div class="fg"><label>Stagiaire</label><input type="text" id="ab-stagiaire" placeholder="Prenom Nom"></div>
+        <div class="fg"><label>Motif</label><select id="ab-motif"><option>Probleme personnel</option><option>Urgence professionnelle</option><option>Contenu non adapte</option><option>Probleme technique</option><option>Autre</option></select></div>
+        <div class="fg"><label>Notes</label><textarea id="ab-notes"></textarea></div>
+        <button class="btn btn-danger" id="btn-declare-abandon" style="width:100%">Enregistrer l'abandon</button>
+        <div class="divider"></div>
+        <div class="sec">Abandons enregistres</div>
+        <div id="ab-list"><div style="font-size:.82rem;color:var(--ink-light)">Aucun abandon.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AMELIORATION -->
+  <div class="tab" id="tab-amelioration">
+    <div class="two-col" style="align-items:start">
+      <div>
+        <div class="sec">Plan d'actions qualite</div>
+        <div class="fg"><label>Type</label><select id="ac-type"><option>Reclamation</option><option>Dysfonctionnement</option><option>Insatisfaction enquete</option><option>Alea formation</option><option>Suggestion</option></select></div>
+        <div class="fg"><label>Description</label><textarea id="ac-desc"></textarea></div>
+        <div class="fg"><label>Action corrective</label><textarea id="ac-corr"></textarea></div>
+        <div class="fg2">
+          <div class="fg"><label>Responsable</label><select id="ac-resp"><option>Bruno Cadene</option><option>Sebastien Curnillon</option><option>Aurelien Bahnous</option></select></div>
+          <div class="fg"><label>Echeance</label><input type="date" id="ac-date"></div>
+        </div>
+        <button class="btn btn-primary" id="btn-add-action">+ Ajouter</button>
+        <div class="divider"></div>
+        <div id="ac-list"><div style="font-size:.82rem;color:var(--ink-light)">Aucune action.</div></div>
+      </div>
+      <div>
+        <div class="sec">Veille reglementaire</div>
+        <div style="margin-bottom:14px"><div style="font-weight:600;font-size:.82rem;color:var(--teal);margin-bottom:7px">Formation</div><div style="display:flex;flex-wrap:wrap;gap:5px"><span class="badge b-teal">FORMALERTE</span><span class="badge b-teal">Webikeo</span><span class="badge b-teal">OPCO ATLAS</span></div></div>
+        <div style="margin-bottom:14px"><div style="font-weight:600;font-size:.82rem;color:var(--violet);margin-bottom:7px">Menuiserie</div><div style="display:flex;gap:5px;flex-wrap:wrap"><span class="badge b-violet">Equipbaie</span><span class="badge b-violet">Batimat</span><span class="badge b-violet">L'echo de la baie</span></div></div>
+        <div class="divider"></div>
+        <div style="display:flex;gap:7px;margin-bottom:8px"><input type="text" id="vl-input" style="flex:1" placeholder="Sujet, source..."><button class="btn btn-ghost btn-sm" id="btn-add-veille">+ Ajouter</button></div>
+        <div id="vl-list" style="display:flex;flex-direction:column;gap:6px"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FORMATEURS -->
+  <div class="tab" id="tab-formateurs">
+    <div class="sec">Equipe</div>
+    <div class="three-col">
+      <div class="card"><div style="display:flex;align-items:center;gap:10px;margin-bottom:14px"><div style="width:38px;height:38px;border-radius:50%;background:var(--teal-p);display:flex;align-items:center;justify-content:center;font-size:1.1rem">&#128105;</div><div><div style="font-weight:600">Aurelien Bahnous</div><div style="font-size:.72rem;color:var(--ink-light)">Formateur</div></div></div><div style="display:flex;flex-wrap:wrap;gap:5px"><span class="badge b-teal">Module Tarif</span><span class="badge b-teal">Comptabilite</span></div></div>
+      <div class="card"><div style="display:flex;align-items:center;gap:10px;margin-bottom:14px"><div style="width:38px;height:38px;border-radius:50%;background:var(--teal-p);display:flex;align-items:center;justify-content:center;font-size:1.1rem">&#128104;</div><div><div style="font-weight:600">Sebastien Curnillon</div><div style="font-size:.72rem;color:var(--ink-light)">Responsable Formation</div></div></div><div style="display:flex;flex-wrap:wrap;gap:5px"><span class="badge b-teal">Tous modules</span><span class="badge b-violet">Commercial</span></div></div>
+      <div class="card"><div style="display:flex;align-items:center;gap:10px;margin-bottom:14px"><div style="width:38px;height:38px;border-radius:50%;background:var(--teal-p);display:flex;align-items:center;justify-content:center;font-size:1.1rem">&#128104;</div><div><div style="font-weight:600">Bruno Cadene</div><div style="font-size:.72rem;color:var(--ink-light)">Directeur Administratif</div></div></div><div style="display:flex;flex-wrap:wrap;gap:5px"><span class="badge b-teal">Tous modules</span><span class="badge b-blue">Gestion admin.</span></div></div>
+    </div>
+  </div>
+
+  <!-- PARAMETRES -->
+  <div class="tab" id="tab-parametres">
+    <div class="two-col" style="align-items:start">
+      <!-- BREVO -->
+      <div>
+        <div class="sec">Brevo (envoi mails)</div>
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;margin-bottom:14px">
+            <div style="font-weight:600">Connexion API</div>
+            <span class="brevo-dot brevo-nc" id="brevo-panel-status">&#9679; Non configure</span>
+          </div>
+          <div class="fg"><label>Cle API Brevo <span class="req">*</span></label><input type="password" id="cfg-brevo-key" placeholder="xkeysib-..."></div>
+          <div class="fg"><label>Email expediteur <span class="req">*</span></label><input type="email" id="cfg-from-email" placeholder="formation@solis-system.com"></div>
+          <div class="fg"><label>Nom expediteur</label><input type="text" id="cfg-from-name" placeholder="Solis System - Lola Formation"></div>
+          <div class="fg"><label>Lien distanciel</label><input type="text" id="cfg-lien" placeholder="https://anydesk.com/..."></div>
+          <div class="fg"><label>Signature</label><textarea id="cfg-sig" style="min-height:54px"></textarea></div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <button class="btn btn-primary btn-sm" id="btn-save-cfg">Enregistrer</button>
+            <button class="btn btn-ghost btn-sm" id="btn-test-brevo">Tester</button>
+            <span id="brevo-test-result" style="font-size:.78rem"></span>
+          </div>
+        </div>
+      </div>
+      <!-- GOOGLE SHEETS -->
+      <div>
+        <div class="sec">Google Sheets (base de donnees)</div>
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;margin-bottom:14px">
+            <div style="font-weight:600">Connexion Apps Script</div>
+            <span id="sheets-status-badge" class="badge b-grey">Non configure</span>
+          </div>
+          <div class="alert a-info" style="font-size:.78rem">
+            URL de l'Apps Script deploye comme application web.<br>
+            Voir l'onglet <strong>Guide installation</strong> pour la procedure complete.
+          </div>
+          <div class="fg"><label>URL Apps Script <span class="req">*</span></label><input type="text" id="cfg-sheets-url" placeholder="https://script.google.com/macros/s/.../exec"></div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <button class="btn btn-primary btn-sm" id="btn-save-sheets">Enregistrer</button>
+            <button class="btn btn-ghost btn-sm" id="btn-test-sheets">Tester la connexion</button>
+            <span id="sheets-test-result" style="font-size:.78rem"></span>
+          </div>
+          <div class="divider"></div>
+          <div style="font-weight:600;font-size:.82rem;margin-bottom:10px">Actions manuelles</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-ghost btn-sm" id="btn-pull">&#8595; Charger depuis Sheets</button>
+            <button class="btn btn-ghost btn-sm" id="btn-push">&#8593; Sauvegarder vers Sheets</button>
+          </div>
+          <div id="sync-log" style="font-size:.75rem;color:var(--ink-light);margin-top:10px"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GUIDE INSTALLATION -->
+  <div class="tab" id="tab-installation">
+    <div class="sec">Guide d'installation complet</div>
+
+    <div class="card" style="margin-bottom:20px">
+      <div style="font-weight:700;font-size:1rem;margin-bottom:18px;display:flex;align-items:center;gap:10px">
+        <span style="background:var(--ink);color:#fff;border-radius:8px;padding:4px 10px;font-size:.8rem">ETAPE 1</span>
+        Creer le Google Sheet + Apps Script
+      </div>
+
+      <div class="install-step">
+        <div class="install-num">1</div>
+        <div class="install-body">
+          <div class="install-title">Creer un nouveau Google Sheet</div>
+          <div class="install-desc">Allez sur <a href="https://sheets.google.com" target="_blank">sheets.google.com</a> &rarr; Nouveau classeur &rarr; Nommez-le <strong>"Lola Formation - BDD"</strong></div>
+        </div>
+      </div>
+
+      <div class="install-step">
+        <div class="install-num">2</div>
+        <div class="install-body">
+          <div class="install-title">Creer les 3 feuilles</div>
+          <div class="install-desc">En bas du classeur, creez 3 onglets nommes exactement : <code>Formations</code> &nbsp; <code>Abandons</code> &nbsp; <code>Actions</code></div>
+        </div>
+      </div>
+
+      <div class="install-step">
+        <div class="install-num">3</div>
+        <div class="install-body">
+          <div class="install-title">Ouvrir l'editeur Apps Script</div>
+          <div class="install-desc">Dans le Sheet : menu <strong>Extensions</strong> &rarr; <strong>Apps Script</strong>. Supprimez le code existant et collez le code ci-dessous.</div>
+        </div>
+      </div>
+
+      <div class="install-step">
+        <div class="install-num">4</div>
+        <div class="install-body">
+          <div class="install-title">Code Apps Script a copier</div>
+          <div class="install-desc">
+            <button class="btn btn-ghost btn-sm" id="btn-copy-gs" style="margin-bottom:8px">Copier le code</button>
+            <pre id="gs-code">const SHEET_ID = SpreadsheetApp.getActiveSpreadsheet().getId();
+
+function doGet(e) {
+  return handleRequest(e);
+}
+function doPost(e) {
+  return handleRequest(e);
+}
+
+function handleRequest(e) {
+  var params = e.parameter || {};
+  var postData = {};
+  try {
+    if (e.postData && e.postData.contents) {
+      postData = JSON.parse(e.postData.contents);
+    }
+  } catch(err) {}
+
+  var action = params.action || postData.action;
+  var sheet = params.sheet || postData.sheet;
+  var data = postData.data;
+
+  var output;
+  try {
+    if (action === 'ping') {
+      output = { ok: true, msg: 'Lola Formation BDD connectee' };
+    } else if (action === 'read') {
+      output = { ok: true, data: readSheet(sheet) };
+    } else if (action === 'write') {
+      writeSheet(sheet, data);
+      output = { ok: true };
+    } else {
+      output = { ok: false, msg: 'Action inconnue: ' + action };
+    }
+  } catch(err) {
+    output = { ok: false, msg: err.toString() };
+  }
+
+  return ContentService
+    .createTextOutput(JSON.stringify(output))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function readSheet(name) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sh = ss.getSheetByName(name);
+  if (!sh) return [];
+  var rows = sh.getDataRange().getValues();
+  if (rows.length < 2) return [];
+  var headers = rows[0];
+  return rows.slice(1).map(function(row) {
+    var obj = {};
+    headers.forEach(function(h, i) { obj[h] = row[i]; });
+    return obj;
+  });
+}
+
+function writeSheet(name, data) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sh = ss.getSheetByName(name);
+  if (!sh) sh = ss.insertSheet(name);
+  sh.clearContents();
+  if (!data || !data.length) return;
+  var headers = Object.keys(data[0]);
+  var rows = data.map(function(obj) {
+    return headers.map(function(h) { return obj[h] !== undefined ? obj[h] : ''; });
+  });
+  sh.getRange(1, 1, 1, headers.length).setValues([headers]);
+  if (rows.length) {
+    sh.getRange(2, 1, rows.length, headers.length).setValues(rows);
+  }
+}</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="install-step">
+        <div class="install-num">5</div>
+        <div class="install-body">
+          <div class="install-title">Deployer comme application web</div>
+          <div class="install-desc">
+            Dans Apps Script : <strong>Deployer</strong> &rarr; <strong>Nouveau deploiement</strong> &rarr; Type : <em>Application web</em><br>
+            &bull; Executer en tant que : <strong>Moi</strong><br>
+            &bull; Qui peut acceder : <strong>Tout le monde</strong><br>
+            &bull; Cliquez <strong>Deployer</strong> &rarr; autorisez &rarr; copiez l'URL generee
+          </div>
+        </div>
+      </div>
+
+      <div class="install-step">
+        <div class="install-num">6</div>
+        <div class="install-body">
+          <div class="install-title">Coller l'URL dans les Parametres</div>
+          <div class="install-desc">Allez dans <strong>Parametres &rarr; Google Sheets</strong>, collez l'URL Apps Script, cliquez <strong>Tester la connexion</strong>.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:20px">
+      <div style="font-weight:700;font-size:1rem;margin-bottom:18px;display:flex;align-items:center;gap:10px">
+        <span style="background:var(--ink);color:#fff;border-radius:8px;padding:4px 10px;font-size:.8rem">ETAPE 2</span>
+        Heberger sur GitHub Pages
+      </div>
+
+      <div class="install-step">
+        <div class="install-num">1</div>
+        <div class="install-body">
+          <div class="install-title">Creer un compte GitHub (si necessaire)</div>
+          <div class="install-desc"><a href="https://github.com/signup" target="_blank">github.com/signup</a> &mdash; compte gratuit, 2 minutes.</div>
+        </div>
+      </div>
+
+      <div class="install-step">
+        <div class="install-num">2</div>
+        <div class="install-body">
+          <div class="install-title">Creer un nouveau repository</div>
+          <div class="install-desc">
+            <a href="https://github.com/new" target="_blank">github.com/new</a><br>
+            &bull; Nom : <code>lola-formation</code><br>
+            &bull; Visibilite : <strong>Public</strong> (requis pour GitHub Pages gratuit)<br>
+            &bull; Cochez <em>Add a README file</em> &rarr; <strong>Create repository</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="install-step">
+        <div class="install-num">3</div>
+        <div class="install-body">
+          <div class="install-title">Uploader le fichier HTML</div>
+          <div class="install-desc">
+            Dans le repository : <strong>Add file</strong> &rarr; <strong>Upload files</strong><br>
+            Glissez <code>gestion-formation-lola-v6.html</code>, renommez-le <code>index.html</code> avant l'upload (ou renommez apres upload).<br>
+            Cliquez <strong>Commit changes</strong>.
+          </div>
+        </div>
+      </div>
+
+      <div class="install-step">
+        <div class="install-num">4</div>
+        <div class="install-body">
+          <div class="install-title">Activer GitHub Pages</div>
+          <div class="install-desc">
+            Dans le repository : <strong>Settings</strong> &rarr; <strong>Pages</strong> (menu gauche)<br>
+            &bull; Source : <strong>Deploy from a branch</strong><br>
+            &bull; Branch : <strong>main</strong> &bull; Dossier : <strong>/ (root)</strong><br>
+            &bull; <strong>Save</strong> &rarr; attendre ~2 minutes
+          </div>
+        </div>
+      </div>
+
+      <div class="install-step">
+        <div class="install-num">5</div>
+        <div class="install-body">
+          <div class="install-title">Votre URL est prete</div>
+          <div class="install-desc">
+            Votre outil est accessible sur :<br>
+            <code>https://[votre-pseudo].github.io/lola-formation/</code><br><br>
+            <strong>Pour mettre a jour l'outil :</strong> retournez dans le repository, cliquez sur <code>index.html</code> &rarr; icone crayon &rarr; modifiez ou re-uploadez &rarr; Commit. Mis en ligne en 2 minutes.
+          </div>
+        </div>
+      </div>
+
+      <div class="alert a-warning" style="margin-top:4px">
+        <div><strong>Important :</strong> le repository doit rester <strong>Public</strong> pour GitHub Pages gratuit. Vos donnees de formation sont dans Google Sheets (non visible sur GitHub). Seul le code HTML est public &mdash; ne mettez jamais votre cle Brevo dans le fichier HTML.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="font-weight:700;font-size:1rem;margin-bottom:14px;display:flex;align-items:center;gap:10px">
+        <span style="background:var(--green);color:#fff;border-radius:8px;padding:4px 10px;font-size:.8rem">RECAP</span>
+        Architecture finale
+      </div>
+      <div style="font-size:.84rem;line-height:2;color:var(--ink-mid)">
+        <strong style="color:var(--ink)">Navigateur</strong> &rarr; charge <code>index.html</code> depuis GitHub Pages<br>
+        <strong style="color:var(--ink)">Config</strong> (cle Brevo, templates) &rarr; stockee dans <code>localStorage</code> du navigateur<br>
+        <strong style="color:var(--ink)">Donnees</strong> (formations, abandons) &rarr; lues/ecrites dans <code>Google Sheets</code> via Apps Script<br>
+        <strong style="color:var(--ink)">Mails</strong> &rarr; envoyes directement par <code>Brevo API</code> depuis le navigateur
+      </div>
+    </div>
+  </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- MODAL FORMATION -->
+<div class="overlay" id="overlay-formation">
+  <div class="modal">
+    <div class="modal-head"><h2 id="modal-f-title">Detail formation</h2><button class="btn-x" id="btn-close-modal-f">&#10005;</button></div>
+    <div class="modal-body" id="modal-f-body"></div>
+    <div class="modal-foot" id="modal-f-foot"></div>
+  </div>
+</div>
+
+<!-- MODAL MAIL -->
+<div class="overlay" id="overlay-mail">
+  <div class="modal modal-lg">
+    <div class="modal-head">
+      <div>
+        <h2 id="mm-title">Previsualisation du mail</h2>
+        <div style="font-size:.75rem;color:var(--ink-light);margin-top:3px" id="mm-to"></div>
+      </div>
+      <button class="btn-x" id="btn-close-modal-mail">&#10005;</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+        <div>
+          <div style="font-weight:600;font-size:.82rem;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)">Variables</div>
+          <div id="var-editor"></div>
+          <button class="btn btn-ghost btn-sm" id="btn-refresh-preview" style="margin-top:4px">Actualiser l'apercu</button>
+        </div>
+        <div>
+          <div style="font-weight:600;font-size:.82rem;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)">Apercu</div>
+          <div class="mail-subject-row" id="mm-subject" style="margin-bottom:10px"></div>
+          <button class="btn btn-ghost btn-sm" id="btn-toggle-edit" style="margin-bottom:8px">Modifier le corps</button>
+          <div class="mail-preview" id="mm-body"></div>
+          <textarea class="mail-edit-area" id="mm-edit"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" id="btn-cancel-mail">Annuler</button>
+      <button class="btn btn-ghost btn-sm" id="btn-mark-sent-manual">Marquer envoye</button>
+      <button class="btn btn-primary" id="btn-send-brevo"><span id="btn-send-label">Envoyer via Brevo</span></button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+// ── STATE ─────────────────────────────────────────────────────
+var formations=[], abandons=[], actions=[], veilles=[], stagsTmp=[];
+var mailQueue=[], sentMails=[], currentMail=null, mailFilter='all', mailEditMode=false;
+
+var mailCfg={
+  brevoKey:  localStorage.getItem('lf_brevo_key')  ||'',
+  fromEmail: localStorage.getItem('lf_from_email') ||'formation@solis-system.com',
+  fromName:  localStorage.getItem('lf_from_name')  ||'Solis System - Lola Formation',
+  sig:       localStorage.getItem('lf_sig')        ||"Cordialement,\nL'equipe Solis System\n04 66 29 18 07",
+  lienPEM:   localStorage.getItem('lf_lien')       ||''
+};
+
+var sheetsCfg={
+  url: localStorage.getItem('lf_sheets_url')||''
+};
+
+// ── TEMPLATES ─────────────────────────────────────────────────
+var TPL_DEFAULTS={
+  preform:{label:'Grille pre-formation (J-2)',ico:'&#128221;',css:'mt-preform',subj:'[Solis System] Questionnaire pre-formation - {{module}} du {{date}}',body:'Bonjour {{prenom}},\n\nVous participez prochainement a la formation "{{module}}" le {{date}}.\n\nMerci de completer le questionnaire pre-formation pour que {{formateur}} puisse personnaliser la session.\n\n{{signature}}',brevoId:''},
+  convoc:{label:'Convocation + Programme (J-2)',ico:'&#128232;',css:'mt-convoc',subj:'[Convocation] Formation {{module}} - {{date}}',body:'Bonjour {{prenom}},\n\nNous vous confirmons votre inscription a la formation :\n\nModule : {{module}}\nDate : {{date}}\nFormateur : {{formateur}}\n\nEn cas d\'empechement : 04 66 29 18 07.\n\n{{signature}}',brevoId:''},
+  resp:{label:'Rappel responsable (J-2)',ico:'&#127970;',css:'mt-resp',subj:'[Rappel] Formation {{module}} le {{date}}',body:'Bonjour {{prenom}},\n\nRappel : formation "{{module}}" le {{date}} pour {{entreprise}}.\nStagiaires : {{stagiaires}}\n\nMerci de confirmer leur disponibilite.\n\n{{signature}}',brevoId:''},
+  lien:{label:'Lien distanciel (J-1)',ico:'&#128187;',css:'mt-lien',subj:'[Solis System] Lien connexion - {{module}} demain',body:'Bonjour {{prenom}},\n\nVotre formation "{{module}}" a lieu demain {{date}} en visioconference.\n\nLien de connexion : {{lien_pem}}\n\nMerci de verifier votre connexion et l\'ouverture de Lola.\n\n{{signature}}',brevoId:''},
+  'sat-stag':{label:'Satisfaction stagiaire (J+7)',ico:'&#11088;',css:'mt-sat',subj:'[Solis System] Votre avis sur {{module}}',body:'Bonjour {{prenom}},\n\nMerci de completer notre questionnaire de satisfaction (2 min) :\nhttps://forms.gle/v2bPpDSXpLsKNu8D6\n\n{{signature}}',brevoId:''},
+  'sat-form':{label:'Bilan formateur (J+7)',ico:'&#127891;',css:'mt-sat',subj:'[Interne] Bilan {{module}} - {{entreprise}}',body:'Bonjour {{prenom}},\n\nMerci de completer le bilan formateur pour {{module}} ({{entreprise}}, {{date}}) :\nhttps://forms.gle/oYq3RJT16xBgm44P9\n\n{{signature}}',brevoId:''}
+};
+
+var templates={};
+var TPL_MODES={};
+Object.keys(TPL_DEFAULTS).forEach(function(k){
+  var s=localStorage.getItem('lf_tpl_'+k);
+  templates[k]=s?JSON.parse(s):JSON.parse(JSON.stringify(TPL_DEFAULTS[k]));
+});
+
+var TITLES={dashboard:"Vue d'ensemble",creer:'Creer',formations:'Formations',stagiaires:'Stagiaires',messagerie:'Messagerie',templates:'Modeles de mails',satisfaction:'Satisfaction',abandons:'Abandons',amelioration:'Amelioration',formateurs:'Formateurs',parametres:'Parametres',installation:'Guide installation'};
+
+// ── GOOGLE SHEETS API ─────────────────────────────────────────
+function sheetsReq(payload){
+  var url=sheetsCfg.url;
+  if(!url) return Promise.reject(new Error('Google Sheets non configure'));
+  return fetch(url,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)})
+    .then(function(r){return r.json();})
+    .then(function(d){if(!d.ok)throw new Error(d.msg||'Erreur Sheets');return d;});
+}
+
+function setSyncStatus(state, msg){
+  var dot=document.getElementById('sync-dot');
+  var lbl=document.getElementById('sync-label');
+  var log=document.getElementById('sync-log');
+  if(dot){dot.className='sync-dot '+state;}
+  if(lbl)lbl.textContent=msg||'';
+  if(log)log.textContent=msg||'';
+}
+
+function pullFromSheets(){
+  if(!sheetsCfg.url){document.getElementById('sheets-warning').style.display='flex';return;}
+  setSyncStatus('syncing','Chargement...');
+  return sheetsReq({action:'read',sheet:'Formations'})
+    .then(function(d){
+      formations=d.data.map(function(r){
+        r.stagiaires=r.stagiaires?r.stagiaires.split('|'):[];
+        r.convocSent=r.convocSent==='true'||r.convocSent===true;
+        r.preformSent=r.preformSent==='true'||r.preformSent===true;
+        r.liensent=r.liensent==='true'||r.liensent===true;
+        r.satSent=r.satSent==='true'||r.satSent===true;
+        r.satFormateurSent=r.satFormateurSent==='true'||r.satFormateurSent===true;
+        return r;
+      });
+      return sheetsReq({action:'read',sheet:'Abandons'});
+    })
+    .then(function(d){
+      abandons=d.data;
+      return sheetsReq({action:'read',sheet:'Actions'});
+    })
+    .then(function(d){
+      actions=d.data;
+      setSyncStatus('ok','Sync OK - '+new Date().toLocaleTimeString('fr-FR'));
+      document.getElementById('sheets-warning').style.display='none';
+      renderDashboard();scanMails();renderMailList();
+    })
+    .catch(function(err){
+      setSyncStatus('err','Erreur : '+err.message);
+    });
+}
+
+function pushToSheets(){
+  if(!sheetsCfg.url)return Promise.reject(new Error('Non configure'));
+  setSyncStatus('syncing','Sauvegarde...');
+  var fData=formations.map(function(f){
+    var row=Object.assign({},f);
+    row.stagiaires=(f.stagiaires||[]).join('|');
+    return row;
+  });
+  return sheetsReq({action:'write',sheet:'Formations',data:fData})
+    .then(function(){return sheetsReq({action:'write',sheet:'Abandons',data:abandons});})
+    .then(function(){return sheetsReq({action:'write',sheet:'Actions',data:actions});})
+    .then(function(){setSyncStatus('ok','Sauvegarde OK - '+new Date().toLocaleTimeString('fr-FR'));})
+    .catch(function(err){setSyncStatus('err','Erreur : '+err.message);});
+}
+
+// ── NAV ───────────────────────────────────────────────────────
+function goTab(id){
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
+  document.querySelectorAll('.nb').forEach(function(b){b.classList.remove('active');});
+  var tab=document.getElementById('tab-'+id);if(tab)tab.classList.add('active');
+  var btn=document.querySelector('.nb[data-tab="'+id+'"]');if(btn)btn.classList.add('active');
+  document.getElementById('topbar-title').textContent=TITLES[id]||id;
+  if(id==='dashboard')  {renderDashboard();}
+  if(id==='formations') renderFormations('all');
+  if(id==='stagiaires') renderStagiaires();
+  if(id==='satisfaction')renderRelances();
+  if(id==='abandons')   populateAbSelect();
+  if(id==='messagerie') {scanMails();renderMailList();}
+  if(id==='templates')  renderTemplates();
+  if(id==='parametres') loadParamsUI();
+}
+document.getElementById('sidebar-nav').addEventListener('click',function(e){
+  var b=e.target.closest('.nb[data-tab]');if(b)goTab(b.dataset.tab);
+});
+document.getElementById('btn-sync-now').addEventListener('click',function(){pullFromSheets();});
+document.getElementById('btn-pull').addEventListener('click',function(){pullFromSheets();});
+document.getElementById('btn-push').addEventListener('click',function(){pushToSheets();});
+
+// ── CHECKLIST ─────────────────────────────────────────────────
+document.querySelectorAll('.cl li').forEach(function(li){
+  li.addEventListener('click',function(){
+    var cb=li.querySelector('input[type=checkbox]');cb.checked=!cb.checked;
+    li.classList.toggle('done',cb.checked);updateClProg();
+  });
+});
+function updateClProg(){
+  var all=document.querySelectorAll('#tab-creer .cl li');
+  var done=Array.from(all).filter(function(l){return l.classList.contains('done');}).length;
+  document.getElementById('cl-prog').style.width=Math.round(done/all.length*100)+'%';
+  document.getElementById('cl-count').textContent=done+' / '+all.length+' etapes';
+}
+
+// ── STAGIAIRES FORM ───────────────────────────────────────────
+function addStag(){var inp=document.getElementById('stag-input'),v=inp.value.trim();if(!v)return;stagsTmp.push(v);inp.value='';renderStagTags();}
+function rmStag(i){stagsTmp.splice(i,1);renderStagTags();}
+function renderStagTags(){
+  var w=document.getElementById('stag-tags');
+  w.innerHTML=stagsTmp.map(function(s,i){return '<span class="stag-tag">'+esc(s)+'<button class="stag-rm" data-idx="'+i+'">x</button></span>';}).join('');
+  w.querySelectorAll('.stag-rm').forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();rmStag(parseInt(b.dataset.idx));});});
+}
+document.getElementById('stag-input').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();addStag();}});
+document.getElementById('btn-add-stag').addEventListener('click',addStag);
+
+// ── CREER FORMATION ───────────────────────────────────────────
+function gv(id){var el=document.getElementById(id);return el?el.value.trim():'';}
+document.getElementById('btn-creer').addEventListener('click',creerFormation);
+document.getElementById('btn-reset').addEventListener('click',resetCreer);
+document.getElementById('btn-goto-creer').addEventListener('click',function(){goTab('creer');});
+
+function creerFormation(){
+  var ent=gv('nf-entreprise'),mod=gv('nf-module'),form=gv('nf-formateur'),date=gv('nf-date');
+  if(!ent||!mod||!form||!date){alert('Champs obligatoires manquants.');return;}
+  var f={id:Date.now(),entreprise:ent,contact:gv('nf-contact'),email:gv('nf-email'),tel:gv('nf-tel'),module:mod,formateur:form,date:date,mode:gv('nf-mode')||'Presentiel',financeur:gv('nf-financeur'),notes:gv('nf-notes'),stagiaires:stagsTmp.slice(),statut:'planifiee',convocSent:false,preformSent:false,liensent:false,satSent:false,satFormateurSent:false,createdAt:new Date().toISOString()};
+  formations.push(f);
+  pushActivity('Formation planifiee : '+mod+' - '+ent,'&#128197;','tico-teal');
+  resetCreer();scanMails();renderDashboard();
+  pushToSheets();
+  alert('Formation creee ! Allez dans Messagerie pour envoyer les convocations.');
+}
+function resetCreer(){
+  ['nf-entreprise','nf-contact','nf-email','nf-tel','nf-date','nf-notes','nf-financeur'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  ['nf-module','nf-formateur','nf-mode'].forEach(function(id){var el=document.getElementById(id);if(el)el.selectedIndex=0;});
+  stagsTmp=[];renderStagTags();
+  document.querySelectorAll('#tab-creer .cl li').forEach(function(li){li.classList.remove('done');li.querySelector('input').checked=false;});
+  updateClProg();
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────────
+function renderDashboard(){
+  var act=formations.filter(function(f){return f.statut!=='terminee';});
+  var ter=formations.filter(function(f){return f.statut==='terminee';});
+  var tot=formations.reduce(function(s,f){return s+(f.stagiaires?f.stagiaires.length:0);},0);
+  document.getElementById('stat-actives').textContent=act.length;
+  document.getElementById('stat-stags').textContent=tot;
+  document.getElementById('stat-mails').textContent=mailQueue.length;
+  document.getElementById('stat-terminees').textContent=ter.length;
+  var tbody=document.getElementById('dash-tbody');
+  if(!act.length){tbody.innerHTML='<tr><td colspan="7" class="tbl-empty">Aucune formation planifiee</td></tr>';return;}
+  tbody.innerHTML=act.slice(0,8).map(function(f){
+    var idx=formations.indexOf(f);
+    return '<tr><td><strong>'+esc(f.entreprise)+'</strong></td><td>'+esc(f.module)+'</td><td>'+fmtDate(f.date)+'</td><td>'+esc(f.formateur)+'</td><td>'+statusBadge(f.statut)+'</td><td>'+(f.convocSent?'<span class="badge b-green">Ok</span>':'<span class="badge b-amber">A envoyer</span>')+'</td><td><button class="btn btn-ghost btn-sm mopen" data-idx="'+idx+'">Voir</button></td></tr>';
+  }).join('');
+  tbody.querySelectorAll('.mopen').forEach(function(b){b.addEventListener('click',function(){openModal(parseInt(b.dataset.idx));});});
+}
+
+// ── FORMATIONS ────────────────────────────────────────────────
+function renderFormations(fil){
+  var list=fil==='all'?formations:formations.filter(function(f){return f.statut===fil;});
+  var tbody=document.getElementById('f-tbody');
+  if(!list.length){tbody.innerHTML='<tr><td colspan="7" class="tbl-empty">Aucune formation</td></tr>';return;}
+  tbody.innerHTML=list.map(function(f){
+    var idx=formations.indexOf(f);
+    return '<tr><td><strong>'+esc(f.entreprise)+'</strong></td><td>'+esc(f.module)+'</td><td>'+fmtDate(f.date)+'</td><td>'+esc(f.formateur)+'</td><td>'+(f.stagiaires&&f.stagiaires.length?f.stagiaires.length+' pers.':'—')+'</td><td>'+statusBadge(f.statut)+'</td><td style="display:flex;gap:5px"><button class="btn btn-ghost btn-sm mopen" data-idx="'+idx+'">Gerer</button><button class="btn btn-danger btn-sm delbtn" data-idx="'+idx+'">x</button></td></tr>';
+  }).join('');
+  tbody.querySelectorAll('.mopen').forEach(function(b){b.addEventListener('click',function(){openModal(parseInt(b.dataset.idx));});});
+  tbody.querySelectorAll('.delbtn').forEach(function(b){b.addEventListener('click',function(){deleteF(parseInt(b.dataset.idx));});});
+}
+document.getElementById('pills-formations').addEventListener('click',function(e){
+  var p=e.target.closest('.pill');if(!p)return;
+  document.querySelectorAll('#pills-formations .pill').forEach(function(x){x.classList.remove('active');});
+  p.classList.add('active');renderFormations(p.dataset.filter);
+});
+function deleteF(i){if(!confirm('Supprimer cette formation ?'))return;formations.splice(i,1);renderFormations('all');renderDashboard();scanMails();pushToSheets();}
+
+// ── MODAL FORMATION ───────────────────────────────────────────
+function openModal(idx){
+  var f=formations[idx];
+  document.getElementById('modal-f-title').textContent=f.module+' - '+f.entreprise;
+  var ord=['planifiee','convocations','en-cours','terminee'];
+  var steps=['Planifiee','Convocations','En cours','Terminee'];
+  var cur=ord.indexOf(f.statut);
+  var pipe='<div class="pipeline">'+steps.map(function(s,i){var c=i<cur?'done':i===cur?'current':'';return '<div class="ps '+c+'"><span class="pi">'+(i===0?'&#128197;':i===1?'&#128232;':i===2?'&#9654;':'&#10003;')+'</span>'+s+'</div>'+(i<3?'<span class="pa">></span>':'');}).join('')+'</div>';
+  var rows='';
+  rows+='<div class="cr'+(f.preformSent?' sent':'')+'"><div class="cr-l">&#128221; <strong>Grille pre-formation (J-2)</strong></div><div class="cr-r">'+(f.preformSent?'<span class="badge b-green">Ok</span>':'<button class="btn btn-ghost btn-sm" id="bp'+idx+'">Marquer</button>')+'</div></div>';
+  rows+='<div class="cr'+(f.convocSent?' sent':'')+'"><div class="cr-l">&#128232; <strong>Convocation + programme (J-2)</strong></div><div class="cr-r">'+(f.convocSent?'<span class="badge b-green">Ok</span>':'<button class="btn btn-ghost btn-sm" id="bc'+idx+'">Marquer</button>')+'</div></div>';
+  if(f.mode==='A distance')rows+='<div class="cr'+(f.liensent?' sent':'')+'"><div class="cr-l">&#128187; <strong>Lien prise en main (J-1)</strong></div><div class="cr-r">'+(f.liensent?'<span class="badge b-green">Ok</span>':'<button class="btn btn-ghost btn-sm" id="bl'+idx+'">Marquer</button>')+'</div></div>';
+  document.getElementById('modal-f-body').innerHTML=pipe+
+    '<div class="fg2" style="margin-bottom:14px"><div><label>Date</label><div style="margin-top:3px;font-size:.84rem">'+fmtDate(f.date)+'</div></div><div><label>Mode</label><div style="margin-top:3px;font-size:.84rem">'+esc(f.mode)+'</div></div><div><label>Formateur</label><div style="margin-top:3px;font-size:.84rem">'+esc(f.formateur)+'</div></div><div><label>Email</label><div style="margin-top:3px;font-size:.84rem">'+esc(f.email||'—')+'</div></div></div>'+
+    (f.notes?'<div class="alert a-info" style="margin-bottom:14px">'+esc(f.notes)+'</div>':'')+
+    '<div class="sec" style="font-size:.85rem">Stagiaires</div><div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px">'+(f.stagiaires&&f.stagiaires.length?f.stagiaires.map(function(s){return '<span class="stag-tag">'+esc(s)+'</span>';}).join(''):'<span style="color:var(--ink-light);font-size:.8rem">Aucun</span>')+'</div>'+
+    '<div class="sec" style="font-size:.85rem">Suivi envois</div>'+rows;
+  var nextMap={planifiee:'convocations',convocations:'en-cours','en-cours':'terminee'};
+  var nextLbl={convocations:'Convocations envoyees','en-cours':'Demarrer',terminee:'Terminer'};
+  var foot='<button class="btn btn-ghost" id="btn-close-f-inner">Fermer</button>';
+  if(nextMap[f.statut])foot+='<button class="btn btn-primary" id="btn-adv" data-idx="'+idx+'" data-next="'+nextMap[f.statut]+'">'+nextLbl[nextMap[f.statut]]+'</button>';
+  document.getElementById('modal-f-foot').innerHTML=foot;
+  var ci=document.getElementById('btn-close-f-inner');if(ci)ci.addEventListener('click',function(){closeOv('overlay-formation');});
+  var av=document.getElementById('btn-adv');if(av)av.addEventListener('click',function(){advanceStatut(parseInt(av.dataset.idx),av.dataset.next);});
+  var bp=document.getElementById('bp'+idx);if(bp)bp.addEventListener('click',function(){formations[idx].preformSent=true;pushActivity('Grille pre-form : '+f.entreprise,'&#128221;','tico-teal');openModal(idx);scanMails();pushToSheets();});
+  var bc=document.getElementById('bc'+idx);if(bc)bc.addEventListener('click',function(){formations[idx].convocSent=true;pushActivity('Convocation : '+f.entreprise,'&#128232;','tico-teal');openModal(idx);renderDashboard();scanMails();pushToSheets();});
+  var bl=document.getElementById('bl'+idx);if(bl)bl.addEventListener('click',function(){formations[idx].liensent=true;openModal(idx);scanMails();pushToSheets();});
+  openOv('overlay-formation');
+}
+function advanceStatut(idx,next){
+  var f=formations[idx];
+  if(next==='convocations'&&!f.convocSent&&!confirm('Convocations non envoyees. Continuer ?'))return;
+  f.statut=next;
+  var lbl={convocations:'Convocations envoyees','en-cours':'En cours',terminee:'Terminee'};
+  pushActivity(f.module+' - '+f.entreprise+' : '+lbl[next],next==='terminee'?'&#10003;':'&#9654;',next==='terminee'?'tico-teal':'tico-amber');
+  closeOv('overlay-formation');renderFormations('all');renderDashboard();scanMails();pushToSheets();
+}
+document.getElementById('btn-close-modal-f').addEventListener('click',function(){closeOv('overlay-formation');});
+
+// ── STAGIAIRES ────────────────────────────────────────────────
+function renderStagiaires(){
+  var rows=[];
+  formations.forEach(function(f){if(f.stagiaires)f.stagiaires.forEach(function(s){rows.push({nom:s,entreprise:f.entreprise,module:f.module,date:f.date,cS:f.convocSent,pS:f.preformSent,st:f.statut});});});
+  var tbody=document.getElementById('s-tbody');
+  if(!rows.length){tbody.innerHTML='<tr><td colspan="7" class="tbl-empty">Aucun stagiaire</td></tr>';return;}
+  tbody.innerHTML=rows.map(function(r){return '<tr><td>'+esc(r.nom)+'</td><td>'+esc(r.entreprise)+'</td><td>'+esc(r.module)+'</td><td>'+fmtDate(r.date)+'</td><td>'+(r.cS?'<span class="badge b-green">Ok</span>':'<span class="badge b-amber">Attente</span>')+'</td><td>'+(r.pS?'<span class="badge b-green">Ok</span>':'<span class="badge b-amber">Attente</span>')+'</td><td>'+(r.st==='terminee'?'<span class="badge b-amber">J+7</span>':'—')+'</td></tr>';}).join('');
+}
+function renderRelances(){
+  var rows=[];
+  formations.forEach(function(f){if(f.statut==='terminee'){var j7=new Date(f.date);j7.setDate(j7.getDate()+7);var js=j7.toISOString().split('T')[0];rows.push({label:f.module+' - '+f.entreprise,type:'Stagiaire',date:f.date,relance:js});rows.push({label:f.module+' - '+f.entreprise,type:'Formateur',date:f.date,relance:js});}});
+  var tbody=document.getElementById('rel-tbody');
+  if(!rows.length){tbody.innerHTML='<tr><td colspan="6" class="tbl-empty">Aucune relance</td></tr>';return;}
+  tbody.innerHTML=rows.map(function(r){return '<tr><td>'+esc(r.label)+'</td><td>'+r.type+'</td><td>'+fmtDate(r.date)+'</td><td>'+fmtDate(r.relance)+'</td><td><span class="badge b-amber">Attente</span></td><td><button class="btn btn-ghost btn-sm" onclick="this.closest(\'tr\').querySelector(\'.badge\').className=\'badge b-green\';this.textContent=\'Ok\';this.disabled=true">Marquer</button></td></tr>';}).join('');
+}
+
+// ── ABANDONS ──────────────────────────────────────────────────
+function populateAbSelect(){var s=document.getElementById('ab-formation');s.innerHTML='<option value="">-- Choisir --</option>'+formations.map(function(f){return '<option value="'+f.id+'">'+esc(f.module)+' - '+esc(f.entreprise)+'</option>';}).join('');}
+document.getElementById('btn-declare-abandon').addEventListener('click',function(){
+  var fid=document.getElementById('ab-formation').value,stag=document.getElementById('ab-stagiaire').value.trim();
+  if(!fid||!stag){alert('Formation et stagiaire requis.');return;}
+  var f=formations.find(function(x){return x.id==fid;});
+  abandons.push({id:Date.now(),formation:f.module+' - '+f.entreprise,stagiaire:stag,motif:gv('ab-motif'),notes:gv('ab-notes'),date:new Date().toLocaleDateString('fr-FR')});
+  renderAbandons();pushActivity('Abandon : '+stag,'&#128680;','tico-red');pushToSheets();
+  document.getElementById('ab-stagiaire').value='';document.getElementById('ab-notes').value='';
+});
+function renderAbandons(){var c=document.getElementById('ab-list');if(!abandons.length){c.innerHTML='<div style="font-size:.82rem;color:var(--ink-light)">Aucun abandon.</div>';return;}c.innerHTML=abandons.map(function(a){return '<div class="alert a-danger" style="flex-direction:column;gap:4px;margin-bottom:8px"><strong>'+esc(a.stagiaire)+' - '+esc(a.formation)+'</strong><span style="font-size:.78rem">'+esc(a.motif)+'</span></div>';}).join('');}
+document.getElementById('btn-add-action').addEventListener('click',function(){
+  var d=gv('ac-desc');if(!d){alert('Description requise.');return;}
+  actions.push({id:Date.now(),type:gv('ac-type'),desc:d,corrective:gv('ac-corr'),resp:gv('ac-resp'),date:gv('ac-date'),statut:'ouvert'});
+  renderActions();document.getElementById('ac-desc').value='';document.getElementById('ac-corr').value='';pushToSheets();
+});
+function renderActions(){
+  var c=document.getElementById('ac-list');if(!actions.length){c.innerHTML='<div style="font-size:.82rem;color:var(--ink-light)">Aucune action.</div>';return;}
+  c.innerHTML=actions.map(function(a,i){return '<div class="card" style="margin-bottom:8px;padding:14px"><div style="display:flex;justify-content:space-between;gap:8px"><div style="flex:1"><span class="badge '+(a.statut==='clos'?'b-green':'b-amber')+'">'+esc(a.type)+'</span><div style="margin:5px 0;font-size:.84rem">'+esc(a.desc)+'</div></div>'+(a.statut!=='clos'?'<button class="btn btn-ghost btn-sm closbtn" data-idx="'+i+'">Clore</button>':'<span class="badge b-green">Clos</span>')+'</div></div>';}).join('');
+  document.querySelectorAll('.closbtn').forEach(function(b){b.addEventListener('click',function(){actions[parseInt(b.dataset.idx)].statut='clos';renderActions();pushToSheets();});});
+}
+document.getElementById('btn-add-veille').addEventListener('click',function(){var inp=document.getElementById('vl-input'),t=inp.value.trim();if(!t)return;veilles.push({txt:t,date:new Date().toLocaleDateString('fr-FR')});renderVeilles();inp.value='';});
+function renderVeilles(){document.getElementById('vl-list').innerHTML=veilles.map(function(v){return '<div style="display:flex;justify-content:space-between;padding:7px 10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;font-size:.78rem"><span>'+esc(v.txt)+'</span><span style="color:var(--ink-light)">'+v.date+'</span></div>';}).join('');}
+
+// ── TEMPLATE EDITOR ───────────────────────────────────────────
+function renderTemplates(){
+  var c=document.getElementById('tpl-list');
+  c.innerHTML=Object.keys(templates).map(function(k){
+    var t=templates[k];
+    var mode=TPL_MODES[k]||(t.brevoId?'brevo':'text');
+    return '<div class="tpl-card">'+
+      '<div class="tpl-head" data-tplkey="'+k+'">'+
+        '<div class="mc-ico '+t.css+'" style="flex-shrink:0">'+t.ico+'</div>'+
+        '<div style="flex:1"><div style="font-weight:600;font-size:.85rem">'+t.label+'</div>'+
+          '<div style="font-size:.72rem;color:var(--ink-light);margin-top:2px">'+(t.brevoId?'<span class="badge b-teal">Brevo ID '+esc(t.brevoId)+'</span>':'<span class="badge b-grey">Texte</span>')+'</div></div>'+
+        '<span style="color:var(--ink-light)">v</span>'+
+      '</div>'+
+      '<div class="tpl-body" id="tplb-'+k+'">'+
+        '<div class="tpl-mode">'+
+          '<button class="tpl-mode-btn'+(mode==='text'?' active':'')+'\" data-tplmode="text" data-tplkey="'+k+'">Texte personnalise</button>'+
+          '<button class="tpl-mode-btn'+(mode==='brevo'?' active':'')+'\" data-tplmode="brevo" data-tplkey="'+k+'">Template Brevo (ID)</button>'+
+        '</div>'+
+        '<div id="tpl-text-'+k+'" style="display:'+(mode==='text'?'block':'none')+'">'+
+          '<div class="fg"><label>Objet</label><input type="text" id="tpl-subj-'+k+'" value="'+esc(t.subj)+'"></div>'+
+          '<div class="fg"><label>Corps</label><textarea id="tpl-body-'+k+'" style="min-height:140px">'+esc(t.body)+'</textarea></div>'+
+          '<button class="btn btn-ghost btn-sm resetbtn" data-key="'+k+'">Restaurer defaut</button>'+
+        '</div>'+
+        '<div id="tpl-brevo-'+k+'" style="display:'+(mode==='brevo'?'block':'none')+'">'+
+          '<div class="alert a-info" style="font-size:.78rem">Brevo : Campagnes &rarr; Templates &rarr; copier l\'ID.<br>Variables <code>{{prenom}}</code>, <code>{{module}}</code>... injectees automatiquement.</div>'+
+          '<div class="fg2">'+
+            '<div class="fg"><label>ID Template Brevo</label><input type="number" id="tpl-brevo-id-'+k+'" placeholder="ex: 42" value="'+esc(t.brevoId)+'"></div>'+
+            '<div class="fg"><label>Objet de secours</label><input type="text" id="tpl-brevo-subj-'+k+'" value="'+esc(t.subj)+'"></div>'+
+          '</div>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+
+  c.querySelectorAll('.tpl-head').forEach(function(h){
+    h.addEventListener('click',function(){
+      var b=document.getElementById('tplb-'+h.dataset.tplkey);if(b)b.classList.toggle('open');
+    });
+  });
+  c.querySelectorAll('.tpl-mode-btn').forEach(function(btn){
+    btn.addEventListener('click',function(e){
+      e.stopPropagation();
+      var k=btn.dataset.tplkey,m=btn.dataset.tplmode;
+      TPL_MODES[k]=m;
+      btn.closest('.tpl-body').querySelectorAll('.tpl-mode-btn').forEach(function(x){x.classList.remove('active');});
+      btn.classList.add('active');
+      document.getElementById('tpl-text-'+k).style.display=m==='text'?'block':'none';
+      document.getElementById('tpl-brevo-'+k).style.display=m==='brevo'?'block':'none';
+    });
+  });
+  c.querySelectorAll('.resetbtn').forEach(function(b){
+    b.addEventListener('click',function(){
+      var k=b.dataset.key;
+      if(!confirm('Restaurer le modele par defaut ?'))return;
+      templates[k]=JSON.parse(JSON.stringify(TPL_DEFAULTS[k]));
+      localStorage.removeItem('lf_tpl_'+k);
+      renderTemplates();
+      var tb=document.getElementById('tplb-'+k);if(tb)tb.classList.add('open');
+    });
+  });
+}
+
+document.getElementById('btn-save-all-tpl').addEventListener('click',function(){
+  Object.keys(templates).forEach(function(k){
+    var mode=TPL_MODES[k]||(templates[k].brevoId?'brevo':'text');
+    if(mode==='brevo'){
+      templates[k].brevoId=(document.getElementById('tpl-brevo-id-'+k)||{value:''}).value.trim();
+      templates[k].subj=(document.getElementById('tpl-brevo-subj-'+k)||{value:templates[k].subj}).value.trim();
+    }else{
+      templates[k].brevoId='';
+      templates[k].subj=(document.getElementById('tpl-subj-'+k)||{value:templates[k].subj}).value.trim();
+      templates[k].body=(document.getElementById('tpl-body-'+k)||{value:templates[k].body}).value;
+    }
+    localStorage.setItem('lf_tpl_'+k,JSON.stringify(templates[k]));
+  });
+  renderTemplates();
+  alert('Modeles sauvegardes !');
+});
+
+document.querySelectorAll('.var-chip').forEach(function(chip){
+  chip.addEventListener('click',function(){
+    var v=chip.dataset.var;
+    navigator.clipboard.writeText(v).then(function(){
+      var orig=chip.textContent;chip.textContent='Copie !';
+      setTimeout(function(){chip.textContent=orig;},1200);
+    }).catch(function(){});
+  });
+});
+
+// ── PARAMETRES ────────────────────────────────────────────────
+function loadParamsUI(){
+  document.getElementById('cfg-brevo-key').value  =mailCfg.brevoKey;
+  document.getElementById('cfg-from-email').value =mailCfg.fromEmail;
+  document.getElementById('cfg-from-name').value  =mailCfg.fromName;
+  document.getElementById('cfg-lien').value        =mailCfg.lienPEM;
+  document.getElementById('cfg-sig').value         =mailCfg.sig;
+  document.getElementById('cfg-sheets-url').value  =sheetsCfg.url;
+  updateBrevoStatus();updateSheetsStatus();
+}
+document.getElementById('btn-save-cfg').addEventListener('click',function(){
+  mailCfg.brevoKey  =document.getElementById('cfg-brevo-key').value.trim();
+  mailCfg.fromEmail =document.getElementById('cfg-from-email').value.trim();
+  mailCfg.fromName  =document.getElementById('cfg-from-name').value.trim()||'Solis System - Lola Formation';
+  mailCfg.lienPEM   =document.getElementById('cfg-lien').value.trim();
+  mailCfg.sig       =document.getElementById('cfg-sig').value;
+  localStorage.setItem('lf_brevo_key',mailCfg.brevoKey);
+  localStorage.setItem('lf_from_email',mailCfg.fromEmail);
+  localStorage.setItem('lf_from_name',mailCfg.fromName);
+  localStorage.setItem('lf_lien',mailCfg.lienPEM);
+  localStorage.setItem('lf_sig',mailCfg.sig);
+  updateBrevoStatus();alert('Brevo sauvegarde !');
+});
+document.getElementById('btn-save-sheets').addEventListener('click',function(){
+  sheetsCfg.url=document.getElementById('cfg-sheets-url').value.trim();
+  localStorage.setItem('lf_sheets_url',sheetsCfg.url);
+  updateSheetsStatus();alert('URL Sheets sauvegardee !');
+});
+document.getElementById('btn-test-brevo').addEventListener('click',function(){
+  var key=document.getElementById('cfg-brevo-key').value.trim();
+  var res=document.getElementById('brevo-test-result');
+  if(!key){res.textContent='Entrez votre cle API.';res.style.color='var(--red)';return;}
+  res.textContent='Test...';res.style.color='var(--ink-light)';this.disabled=true;
+  var btn=this;
+  fetch('https://api.brevo.com/v3/account',{headers:{'api-key':key,'accept':'application/json'}})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(d.email){res.textContent='OK - '+d.email;res.style.color='var(--green)';}
+      else{res.textContent='Cle invalide.';res.style.color='var(--red)';}
+    })
+    .catch(function(){res.textContent='Erreur reseau.';res.style.color='var(--red)';})
+    .finally(function(){btn.disabled=false;});
+});
+document.getElementById('btn-test-sheets').addEventListener('click',function(){
+  var url=document.getElementById('cfg-sheets-url').value.trim();
+  var res=document.getElementById('sheets-test-result');
+  if(!url){res.textContent='Entrez l\'URL Apps Script.';res.style.color='var(--red)';return;}
+  res.textContent='Test...';res.style.color='var(--ink-light)';this.disabled=true;
+  var btn=this;
+  fetch(url,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({action:'ping'})})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(d.ok){res.textContent='Connecte : '+d.msg;res.style.color='var(--green)';sheetsCfg.url=url;localStorage.setItem('lf_sheets_url',url);updateSheetsStatus();}
+      else{res.textContent='Erreur : '+d.msg;res.style.color='var(--red)';}
+    })
+    .catch(function(e){res.textContent='Erreur reseau.';res.style.color='var(--red)';})
+    .finally(function(){btn.disabled=false;});
+});
+
+function updateBrevoStatus(){
+  var ok=!!(mailCfg.brevoKey&&mailCfg.fromEmail);
+  ['brevo-global-status','brevo-panel-status'].forEach(function(id){
+    var el=document.getElementById(id);if(!el)return;
+    el.textContent=ok?'Brevo connecte':'Brevo non configure';
+    el.className='brevo-dot '+(ok?'brevo-ok':'brevo-nc');
+  });
+}
+function updateSheetsStatus(){
+  var ok=!!sheetsCfg.url;
+  var b=document.getElementById('sheets-status-badge');
+  if(b){b.textContent=ok?'Configure':'Non configure';b.className='badge '+(ok?'b-green':'b-grey');}
+  if(ok){setSyncStatus('ok','Configure');document.getElementById('sheets-warning').style.display='none';}
+  else{setSyncStatus('','Non connecte');document.getElementById('sheets-warning').style.display='flex';}
+}
+
+// ── GUIDE : copier le code GS ─────────────────────────────────
+document.getElementById('btn-copy-gs').addEventListener('click',function(){
+  var code=document.getElementById('gs-code').textContent;
+  navigator.clipboard.writeText(code).then(function(){
+    document.getElementById('btn-copy-gs').textContent='Copie !';
+    setTimeout(function(){document.getElementById('btn-copy-gs').textContent='Copier le code';},2000);
+  });
+});
+
+// ── SCAN MAILS ────────────────────────────────────────────────
+function scanMails(){
+  mailQueue=[];
+  var today=new Date();today.setHours(0,0,0,0);
+  formations.forEach(function(f){
+    var df=new Date(f.date);df.setHours(0,0,0,0);
+    var jA=Math.round((df-today)/86400000);
+    var jP=Math.round((today-df)/86400000);
+    var st=f.stagiaires||[];
+    if(!f.preformSent&&jA<=3&&jA>=0&&f.statut!=='terminee')st.forEach(function(s){if(!alreadySent(f.id,'preform',s))mailQueue.push(buildMail('preform',f,s,jA));});
+    if(!f.convocSent&&jA<=2&&jA>=0&&f.statut!=='terminee'){st.forEach(function(s){if(!alreadySent(f.id,'convoc',s))mailQueue.push(buildMail('convoc',f,s,jA));});if(f.email&&!alreadySent(f.id,'resp',f.contact||'resp'))mailQueue.push(buildMail('resp',f,f.contact||'Responsable',jA));}
+    if(f.mode==='A distance'&&!f.liensent&&jA<=1&&jA>=0&&f.statut!=='terminee')st.forEach(function(s){if(!alreadySent(f.id,'lien',s))mailQueue.push(buildMail('lien',f,s,jA));});
+    if(f.statut==='terminee'&&!f.satSent&&jP>=7)st.forEach(function(s){if(!alreadySent(f.id,'sat-stag',s))mailQueue.push(buildMail('sat-stag',f,s,jP));});
+    if(f.statut==='terminee'&&!f.satFormateurSent&&jP>=7){if(!alreadySent(f.id,'sat-form',f.formateur))mailQueue.push(buildMail('sat-form',f,f.formateur,jP));}
+  });
+  updateMailBadge();
+}
+function alreadySent(fid,type,dest){return sentMails.some(function(m){return m.fid===fid&&m.type===type&&m.dest===dest;});}
+
+function resolveVars(text,vars){return text.replace(/\{\{([a-z_]+)\}\}/g,function(m,k){return vars.hasOwnProperty(k)?vars[k]:m;});}
+function buildVars(f,dest){return{prenom:dest||'',module:f.module||'',date:fmtDate(f.date),formateur:f.formateur||'',entreprise:f.entreprise||'',stagiaires:(f.stagiaires||[]).join(', ')||'—',lien_pem:mailCfg.lienPEM||'[Inserer le lien]',signature:mailCfg.sig||''};}
+
+function buildMail(type,f,dest,jours){
+  var t=templates[type]||TPL_DEFAULTS[type];
+  var vars=buildVars(f,dest);
+  var subj=resolveVars(t.subj,vars);
+  var body=resolveVars(t.body,vars);
+  var urgMap={preform:jours<=1?'hot':'soon',convoc:jours<=1?'hot':'soon',resp:jours<=1?'hot':'soon',lien:'hot','sat-stag':'ok','sat-form':'ok'};
+  return{id:Date.now()+Math.random(),fid:f.id,fLabel:f.module+' - '+f.entreprise,type:type,dest:dest,toEmail:f.email||'',ico:t.ico,css:t.css,label:t.label,urgency:urgMap[type]||'ok',subject:subj,body:body,brevoId:t.brevoId||'',vars:vars,sent:false};
+}
+
+// ── RENDER MAIL LIST ──────────────────────────────────────────
+function renderMailList(){
+  var all=mailQueue.concat(sentMails);
+  if(mailFilter==='sent')all=sentMails;
+  else if(mailFilter==='hot')all=mailQueue.filter(function(m){return m.urgency==='hot';});
+  else if(mailFilter==='sat')all=all.filter(function(m){return m.type.indexOf('sat')===0;});
+  else if(mailFilter!=='all')all=all.filter(function(m){return m.type===mailFilter;});
+  var c=document.getElementById('mail-list');
+  if(!all.length){c.innerHTML='<div style="text-align:center;padding:60px;color:var(--ink-light)"><div style="font-size:2rem;margin-bottom:12px">&#128237;</div><div style="font-weight:600">Aucun mail dans cette categorie</div></div>';return;}
+  all.sort(function(a,b){var o={hot:0,soon:1,ok:2};if(a.sent!==b.sent)return a.sent?1:-1;return(o[a.urgency]||2)-(o[b.urgency]||2);});
+  c.innerHTML=all.map(function(mail,i){
+    var dot=!mail.sent?'<div class="udot '+(mail.urgency==='hot'?'u-hot':mail.urgency==='soon'?'u-soon':'u-ok')+'"></div>':'';
+    var brevoChip=mail.brevoId?'<span class="badge b-teal" style="font-size:.65rem">Brevo #'+esc(mail.brevoId)+'</span> ':'';
+    return '<div class="mail-card'+(mail.sent?' sent':'')+'">'+
+      '<div class="mc-head" data-idx="'+i+'">'+
+        '<div class="mc-ico '+mail.css+'">'+mail.ico+'</div>'+
+        '<div class="mc-meta">'+
+          '<div class="mc-title">'+brevoChip+esc(mail.label)+(mail.sent?' <span class="badge b-green">Envoye</span>':'')+'</div>'+
+          '<div class="mc-sub">'+esc(mail.fLabel)+'</div>'+
+          '<div class="mc-to">A : '+esc(mail.dest)+(mail.toEmail?' &lt;'+esc(mail.toEmail)+'&gt;':'')+'</div>'+
+        '</div>'+dot+
+        (!mail.sent?'<button class="btn btn-primary btn-sm prevbtn" data-idx="'+i+'">Previsualiser</button>':'')+
+        '<span style="color:var(--ink-light);margin-left:6px">v</span>'+
+      '</div>'+
+      '<div class="mc-body" id="mcb-'+i+'">'+
+        '<div class="mail-subject-row">Objet : '+esc(mail.subject)+'</div>'+
+        '<div class="mail-preview">'+esc(mail.body)+'</div>'+
+        (!mail.sent?'<div style="display:flex;gap:8px"><button class="btn btn-primary prevbtn" data-idx="'+i+'">Previsualiser &amp; Envoyer</button><button class="btn btn-ghost btn-sm manbtn" data-idx="'+i+'">Marquer envoye</button></div>':'<div style="font-size:.75rem;color:var(--ink-light)">Envoye le '+(mail.sentAt||'—')+'</div>')+
+      '</div>'+
+    '</div>';
+  }).join('');
+  c.querySelectorAll('.mc-head').forEach(function(h){h.addEventListener('click',function(e){if(e.target.closest('button'))return;var mb=document.getElementById('mcb-'+h.dataset.idx);if(mb)mb.classList.toggle('open');});});
+  c.querySelectorAll('.prevbtn').forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();openMailModal(all[parseInt(b.dataset.idx)]);});});
+  c.querySelectorAll('.manbtn').forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();markSent(all[parseInt(b.dataset.idx)]);renderMailList();});});
+}
+document.getElementById('pills-mails').addEventListener('click',function(e){
+  var p=e.target.closest('.pill');if(!p)return;
+  document.querySelectorAll('#pills-mails .pill').forEach(function(x){x.classList.remove('active');});
+  p.classList.add('active');mailFilter=p.dataset.mf;renderMailList();
+});
+document.getElementById('btn-scan').addEventListener('click',function(){scanMails();renderMailList();});
+
+// ── MODAL MAIL ────────────────────────────────────────────────
+function openMailModal(mail){
+  if(!mail||mail.sent)return;
+  currentMail=JSON.parse(JSON.stringify(mail));
+  mailEditMode=false;
+  document.getElementById('mm-title').textContent=mail.label;
+  document.getElementById('mm-to').textContent='A : '+mail.dest+(mail.toEmail?' <'+mail.toEmail+'>':'');
+  var vars=currentMail.vars||buildVars({module:'',date:'',formateur:'',entreprise:'',stagiaires:'',mode:''},mail.dest);
+  var varLabels={prenom:'Destinataire',module:'Module',date:'Date',formateur:'Formateur',entreprise:'Entreprise',stagiaires:'Stagiaires',lien_pem:'Lien distanciel'};
+  document.getElementById('var-editor').innerHTML=Object.keys(varLabels).map(function(k){
+    return '<div class="fg" style="margin-bottom:9px"><label>'+varLabels[k]+'</label><input type="text" class="var-input" data-varkey="'+k+'" value="'+esc(vars[k]||'')+'"></div>';
+  }).join('');
+  refreshMailPreview();
+  document.getElementById('btn-toggle-edit').textContent='Modifier le corps';
+  document.getElementById('btn-send-label').textContent='Envoyer via Brevo';
+  document.getElementById('btn-send-brevo').disabled=false;
+  document.getElementById('mm-body').style.display='block';
+  document.getElementById('mm-edit').style.display='none';
+  openOv('overlay-mail');
+}
+function getEditedVars(){var v={};document.querySelectorAll('.var-input').forEach(function(i){v[i.dataset.varkey]=i.value;});return v;}
+function refreshMailPreview(){
+  var t=templates[currentMail.type]||TPL_DEFAULTS[currentMail.type];
+  var vars=getEditedVars();
+  var subj=resolveVars(t.subj,vars);
+  var body=mailEditMode?document.getElementById('mm-edit').value:resolveVars(t.body,vars);
+  document.getElementById('mm-subject').textContent='Objet : '+subj;
+  document.getElementById('mm-body').textContent=body;
+  currentMail.subject=subj;currentMail.body=body;currentMail.vars=vars;
+}
+document.getElementById('btn-refresh-preview').addEventListener('click',refreshMailPreview);
+document.getElementById('btn-toggle-edit').addEventListener('click',function(){
+  mailEditMode=!mailEditMode;
+  var prev=document.getElementById('mm-body'),edit=document.getElementById('mm-edit');
+  if(mailEditMode){edit.value=prev.textContent;prev.style.display='none';edit.style.display='block';this.textContent='Retour apercu';}
+  else{currentMail.body=edit.value;prev.textContent=edit.value;prev.style.display='block';edit.style.display='none';this.textContent='Modifier le corps';}
+});
+
+// ── ENVOI BREVO ───────────────────────────────────────────────
+document.getElementById('btn-send-brevo').addEventListener('click',function(){
+  if(!currentMail)return;
+  refreshMailPreview();
+  var to=currentMail.toEmail||'';
+  if(!to){alert('Pas d\'email pour '+currentMail.dest+'.\nRenseignez-le dans la fiche formation.');return;}
+  if(!mailCfg.brevoKey){if(confirm('Cle Brevo non configuree. Ouvrir les Parametres ?')){closeOv('overlay-mail');goTab('parametres');}return;}
+  var btn=this;
+  document.getElementById('btn-send-label').textContent='Envoi...';btn.disabled=true;
+  var t=templates[currentMail.type]||{};
+  var vars=getEditedVars();
+  var payload;
+  if(t.brevoId){
+    payload={sender:{name:mailCfg.fromName,email:mailCfg.fromEmail},to:[{email:to,name:currentMail.dest}],templateId:parseInt(t.brevoId),params:vars};
+  }else{
+    var hb=currentMail.body.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+    payload={sender:{name:mailCfg.fromName,email:mailCfg.fromEmail},to:[{email:to,name:currentMail.dest}],subject:currentMail.subject,textContent:currentMail.body,htmlContent:'<div style="font-family:Arial,sans-serif;font-size:14px;line-height:1.8;color:#18181b;max-width:600px;margin:0 auto;padding:20px">'+hb+'</div>'};
+  }
+  fetch('https://api.brevo.com/v3/smtp/email',{method:'POST',headers:{'api-key':mailCfg.brevoKey,'Content-Type':'application/json','accept':'application/json'},body:JSON.stringify(payload)})
+    .then(function(r){
+      if(r.ok){markSent(currentMail);closeOv('overlay-mail');renderMailList();}
+      else return r.json().then(function(d){alert('Erreur Brevo : '+(d.message||JSON.stringify(d)));document.getElementById('btn-send-label').textContent='Envoyer via Brevo';btn.disabled=false;});
+    })
+    .catch(function(e){alert('Erreur reseau : '+e);document.getElementById('btn-send-label').textContent='Envoyer via Brevo';btn.disabled=false;});
+});
+document.getElementById('btn-mark-sent-manual').addEventListener('click',function(){if(!currentMail)return;if(!confirm('Marquer envoye manuellement ?'))return;markSent(currentMail);closeOv('overlay-mail');renderMailList();});
+document.getElementById('btn-close-modal-mail').addEventListener('click',function(){closeOv('overlay-mail');});
+document.getElementById('btn-cancel-mail').addEventListener('click',function(){closeOv('overlay-mail');});
+
+function markSent(mail){
+  mail.sent=true;mail.sentAt=new Date().toLocaleString('fr-FR');
+  var qi=mailQueue.findIndex(function(m){return m.id===mail.id;});
+  if(qi>=0){mailQueue.splice(qi,1);sentMails.push(mail);}
+  var f=formations.find(function(x){return x.id===mail.fid;});
+  if(f){if(mail.type==='convoc')f.convocSent=true;if(mail.type==='preform')f.preformSent=true;if(mail.type==='lien')f.liensent=true;if(mail.type==='sat-stag')f.satSent=true;if(mail.type==='sat-form')f.satFormateurSent=true;}
+  pushActivity('Mail envoye : '+mail.label+' > '+mail.dest,'&#128228;','tico-teal');
+  updateMailBadge();renderDashboard();pushToSheets();
+}
+
+// ── BADGE ─────────────────────────────────────────────────────
+function updateMailBadge(){
+  var count=mailQueue.length;
+  var badge=document.getElementById('mail-badge');
+  if(badge){badge.textContent=count;badge.style.display=count>0?'inline-flex':'none';}
+  var lbl=document.getElementById('mail-pending-lbl');if(lbl)lbl.textContent=count>0?count+' en attente':'';
+  var sm=document.getElementById('stat-mails');if(sm)sm.textContent=count;
+}
+
+// ── TIMELINE ─────────────────────────────────────────────────
+function pushActivity(text,icon,cls){
+  var tl=document.getElementById('tl-activite'),el=document.createElement('div');
+  el.className='tl-item';
+  el.innerHTML='<div class="tl-ico '+cls+'">'+icon+'</div><div><div class="tl-title">'+esc(text)+'</div><div class="tl-date">'+new Date().toLocaleString('fr-FR')+'</div></div>';
+  tl.insertBefore(el,tl.firstChild);
+}
+
+// ── OVERLAY ───────────────────────────────────────────────────
+function openOv(id){document.getElementById(id).classList.add('open');}
+function closeOv(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.overlay').forEach(function(ov){ov.addEventListener('click',function(e){if(e.target===ov)closeOv(ov.id);});});
+
+// ── HELPERS ───────────────────────────────────────────────────
+function fmtDate(d){if(!d)return'—';try{var p=d.toString().split('T')[0].split('-');return p[2]+'/'+p[1]+'/'+p[0];}catch(e){return String(d);}}
+function statusBadge(s){var m={planifiee:'<span class="badge b-grey">Planifiee</span>',convocations:'<span class="badge b-blue">Convocations</span>','en-cours':'<span class="badge b-teal">En cours</span>',terminee:'<span class="badge b-green">Terminee</span>'};return m[s]||s;}
+function esc(str){return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ── INIT ──────────────────────────────────────────────────────
+updateBrevoStatus();
+updateSheetsStatus();
+renderDashboard();
+scanMails();
+// Auto-pull si Sheets configure
+if(sheetsCfg.url){ pullFromSheets(); }
+</script>
+</body>
+</html>
