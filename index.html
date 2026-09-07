@@ -915,6 +915,7 @@ function resetCreer(){
 
 // ── DASHBOARD ─────────────────────────────────────────────────
 function renderDashboard(){
+  syncStatuts();
   var act=formations.filter(function(f){return f.statut!=='terminee';});
   var ter=formations.filter(function(f){return f.statut==='terminee';});
   var tot=formations.reduce(function(s,f){return s+(f.stagiaires?f.stagiaires.length:0);},0);
@@ -933,6 +934,7 @@ function renderDashboard(){
 
 // ── FORMATIONS ────────────────────────────────────────────────
 function renderFormations(fil){
+  syncStatuts();
   var list=fil==='all'?formations:formations.filter(function(f){return f.statut===fil;});
   var tbody=document.getElementById('f-tbody');
   if(!list.length){tbody.innerHTML='<tr><td colspan="7" class="tbl-empty">Aucune formation</td></tr>';return;}
@@ -991,6 +993,7 @@ document.getElementById('btn-close-modal-f').addEventListener('click',function()
 
 // ── STAGIAIRES ────────────────────────────────────────────────
 function renderStagiaires(){
+  syncStatuts();
   var rows=[];
   formations.forEach(function(f){if(f.stagiaires)f.stagiaires.forEach(function(s){rows.push({nom:s,entreprise:f.entreprise,module:f.module,date:f.date,cS:f.convocSent,pS:f.preformSent,st:f.statut});});});
   var tbody=document.getElementById('s-tbody');
@@ -1375,6 +1378,17 @@ function closeOv(id){document.getElementById(id).classList.remove('open');}
 document.querySelectorAll('.overlay').forEach(function(ov){ov.addEventListener('click',function(e){if(e.target===ov)closeOv(ov.id);});});
 
 // ── HELPERS ───────────────────────────────────────────────────
+function todayISO(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);}
+// Une formation dont la date est arrivee passe automatiquement en cours,
+// tant qu'elle n'a pas ete marquee terminee.
+function syncStatuts(){
+  var t=todayISO();
+  formations.forEach(function(f){
+    if(f.statut!=='planifiee'&&f.statut!=='convocations')return;
+    var d=f.date?f.date.toString().split('T')[0]:'';
+    if(d&&d<=t)f.statut='en-cours';
+  });
+}
 function fmtDate(d){if(!d)return'—';try{var p=d.toString().split('T')[0].split('-');return p[2]+'/'+p[1]+'/'+p[0];}catch(e){return String(d);}}
 function statusBadge(s){var m={planifiee:'<span class="badge b-grey">Planifiee</span>',convocations:'<span class="badge b-blue">Convocations</span>','en-cours':'<span class="badge b-teal">En cours</span>',terminee:'<span class="badge b-green">Terminee</span>'};return m[s]||s;}
 function esc(str){return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
