@@ -123,7 +123,7 @@ a{color:var(--teal);text-decoration:none}a:hover{text-decoration:underline}
 .mail-card:hover{border-color:var(--teal-m)}.mail-card.sent{opacity:.5}
 .mc-head{display:flex;align-items:center;gap:12px;padding:14px 18px;background:var(--bg);cursor:pointer;user-select:none}
 .mc-ico{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
-.mt-convoc{background:var(--blue-p)}.mt-preform{background:var(--violet-p)}.mt-lien{background:var(--amber-p)}.mt-sat{background:var(--green-p)}.mt-resp{background:var(--teal-p)}
+.mt-demarrage{background:var(--amber-p)}.mt-convoc{background:var(--blue-p)}.mt-preform{background:var(--violet-p)}.mt-lien{background:var(--amber-p)}.mt-sat{background:var(--green-p)}.mt-resp{background:var(--teal-p)}
 .mc-meta{flex:1}.mc-title{font-weight:600;font-size:.85rem}.mc-sub{font-size:.72rem;color:var(--ink-light);margin-top:1px}.mc-to{font-size:.75rem;color:var(--ink-mid);margin-top:3px}
 .mc-body{display:none;padding:18px 20px;border-top:1px solid var(--border)}.mc-body.open{display:block}
 .mail-preview{background:var(--bg);border:1px solid var(--border);border-radius:var(--rs);padding:18px;font-size:.82rem;line-height:1.7;white-space:pre-wrap;max-height:280px;overflow-y:auto;margin-bottom:12px}
@@ -309,6 +309,7 @@ pre{background:var(--ink);color:#e4e4e7;border-radius:var(--rs);padding:14px 16p
       <div class="pills" id="pills-mails" style="margin:0">
         <button class="pill active" data-mf="all">Tous</button>
         <button class="pill" data-mf="hot">Urgents</button>
+        <button class="pill" data-mf="demarrage">Demarrage</button>
         <button class="pill" data-mf="convoc">Convocations</button>
         <button class="pill" data-mf="preform">Pre-formation</button>
         <button class="pill" data-mf="lien">Distanciel</button>
@@ -441,6 +442,21 @@ pre{background:var(--ink);color:#e4e4e7;border-radius:var(--rs);padding:14px 16p
             <button class="btn btn-ghost btn-sm" id="btn-test-brevo">Tester</button>
             <span id="brevo-test-result" style="font-size:.78rem"></span>
           </div>
+        </div>
+        <div class="sec" style="margin-top:18px">Organisme de formation</div>
+        <div class="card">
+          <div class="alert a-info" style="font-size:.78rem">
+            Le matin de la formation (a partir de 8h), un rappel part automatiquement
+            au formateur et a l'organisme tant que la formation n'est pas passee
+            <strong>En cours</strong>.<br>
+            L'application doit etre ouverte pour que l'envoi parte.
+          </div>
+          <div class="fg"><label>Nom de l'organisme</label><input type="text" id="cfg-org-nom" placeholder="Solis System"></div>
+          <div class="fg"><label>Email organisme <span class="req">*</span></label><input type="email" id="cfg-org-email" placeholder="formation@solis-system.com"></div>
+          <div class="divider"></div>
+          <div style="font-weight:600;font-size:.82rem;margin-bottom:10px">Emails des formateurs</div>
+          <div id="cfg-formateurs"></div>
+          <button class="btn btn-primary btn-sm" id="btn-save-org">Enregistrer</button>
         </div>
       </div>
       <!-- GOOGLE SHEETS -->
@@ -754,12 +770,27 @@ var mailCfg={
   lienPEM:   localStorage.getItem('lf_lien')       ||''
 };
 
+// Organisme de formation : destinataire des rappels internes.
+var orgCfg={
+  nom:   localStorage.getItem('lf_org_nom')   ||'Solis System',
+  email: localStorage.getItem('lf_org_email') ||''
+};
+
+// Liste des formateurs (alignee sur le select de creation) et leurs emails.
+var RAPPEL_HEURE=8; // heure a partir de laquelle le rappel de demarrage part
+var FORMATEURS=['Aurelien Bahnous','Sebastien Curnillon','Bruno Cadene'];
+var formateurEmails=(function(){
+  try{return JSON.parse(localStorage.getItem('lf_formateur_emails')||'{}');}catch(e){return{};}
+})();
+function emailFormateur(nom){return (formateurEmails[nom]||'').trim();}
+
 var sheetsCfg={
   url: localStorage.getItem('lf_sheets_url')||''
 };
 
 // ── TEMPLATES ─────────────────────────────────────────────────
 var TPL_DEFAULTS={
+  demarrage:{label:'Rappel demarrage (jour J - 8h)',ico:'&#9200;',css:'mt-demarrage',subj:'[Rappel] Demarrer la formation {{module}} - {{entreprise}} aujourd\'hui',body:'Bonjour {{prenom}},\n\nLa formation "{{module}}" pour {{entreprise}} a lieu aujourd\'hui {{date}}.\n\nFormateur : {{formateur}}\nStagiaires : {{stagiaires}}\n\nPensez a la passer en "En cours" dans Lola Formation des le demarrage, ou a l\'annuler si elle n\'a pas lieu.\n\n{{signature}}',brevoId:''},
   preform:{label:'Grille pre-formation (J-2)',ico:'&#128221;',css:'mt-preform',subj:'[Solis System] Questionnaire pre-formation - {{module}} du {{date}}',body:'Bonjour {{prenom}},\n\nVous participez prochainement a la formation "{{module}}" le {{date}}.\n\nMerci de completer le questionnaire pre-formation pour que {{formateur}} puisse personnaliser la session.\n\n{{signature}}',brevoId:''},
   convoc:{label:'Convocation + Programme (J-2)',ico:'&#128232;',css:'mt-convoc',subj:'[Convocation] Formation {{module}} - {{date}}',body:'Bonjour {{prenom}},\n\nNous vous confirmons votre inscription a la formation :\n\nModule : {{module}}\nDate : {{date}}\nFormateur : {{formateur}}\n\nEn cas d\'empechement : 04 66 29 18 07.\n\n{{signature}}',brevoId:''},
   resp:{label:'Rappel responsable (J-2)',ico:'&#127970;',css:'mt-resp',subj:'[Rappel] Formation {{module}} le {{date}}',body:'Bonjour {{prenom}},\n\nRappel : formation "{{module}}" le {{date}} pour {{entreprise}}.\nStagiaires : {{stagiaires}}\n\nMerci de confirmer leur disponibilite.\n\n{{signature}}',brevoId:''},
@@ -807,6 +838,8 @@ function pullFromSheets(){
         r.liensent=r.liensent==='true'||r.liensent===true;
         r.satSent=r.satSent==='true'||r.satSent===true;
         r.satFormateurSent=r.satFormateurSent==='true'||r.satFormateurSent===true;
+        r.demarrageSent=r.demarrageSent==='true'||r.demarrageSent===true;
+        r.demarrageOrgSent=r.demarrageOrgSent==='true'||r.demarrageOrgSent===true;
         return r;
       });
       return sheetsReq({action:'read',sheet:'Abandons'});
@@ -827,7 +860,7 @@ function pullFromSheets(){
 }
 
 function pushToSheets(){
-  if(!sheetsCfg.url)return Promise.reject(new Error('Non configure'));
+  if(!sheetsCfg.url)return Promise.resolve(); // pas de Sheets configure : rien a sauvegarder
   setSyncStatus('syncing','Sauvegarde...');
   var fData=formations.map(function(f){
     var row=Object.assign({},f);
@@ -898,7 +931,7 @@ document.getElementById('btn-goto-creer').addEventListener('click',function(){go
 function creerFormation(){
   var ent=gv('nf-entreprise'),mod=gv('nf-module'),form=gv('nf-formateur'),date=gv('nf-date');
   if(!ent||!mod||!form||!date){alert('Champs obligatoires manquants.');return;}
-  var f={id:Date.now(),entreprise:ent,contact:gv('nf-contact'),email:gv('nf-email'),tel:gv('nf-tel'),module:mod,formateur:form,date:date,mode:gv('nf-mode')||'Presentiel',financeur:gv('nf-financeur'),notes:gv('nf-notes'),stagiaires:stagsTmp.slice(),statut:'planifiee',convocSent:false,preformSent:false,liensent:false,satSent:false,satFormateurSent:false,createdAt:new Date().toISOString()};
+  var f={id:Date.now(),entreprise:ent,contact:gv('nf-contact'),email:gv('nf-email'),tel:gv('nf-tel'),module:mod,formateur:form,date:date,mode:gv('nf-mode')||'Presentiel',financeur:gv('nf-financeur'),notes:gv('nf-notes'),stagiaires:stagsTmp.slice(),statut:'planifiee',convocSent:false,preformSent:false,liensent:false,satSent:false,satFormateurSent:false,demarrageSent:false,demarrageOrgSent:false,createdAt:new Date().toISOString()};
   formations.push(f);
   pushActivity('Formation planifiee : '+mod+' - '+ent,'&#128197;','tico-teal');
   resetCreer();scanMails();renderDashboard();
@@ -915,7 +948,6 @@ function resetCreer(){
 
 // ── DASHBOARD ─────────────────────────────────────────────────
 function renderDashboard(){
-  syncStatuts();
   var act=formations.filter(function(f){return f.statut!=='terminee';});
   var ter=formations.filter(function(f){return f.statut==='terminee';});
   var tot=formations.reduce(function(s,f){return s+(f.stagiaires?f.stagiaires.length:0);},0);
@@ -934,7 +966,6 @@ function renderDashboard(){
 
 // ── FORMATIONS ────────────────────────────────────────────────
 function renderFormations(fil){
-  syncStatuts();
   var list=fil==='all'?formations:formations.filter(function(f){return f.statut===fil;});
   var tbody=document.getElementById('f-tbody');
   if(!list.length){tbody.innerHTML='<tr><td colspan="7" class="tbl-empty">Aucune formation</td></tr>';return;}
@@ -993,7 +1024,6 @@ document.getElementById('btn-close-modal-f').addEventListener('click',function()
 
 // ── STAGIAIRES ────────────────────────────────────────────────
 function renderStagiaires(){
-  syncStatuts();
   var rows=[];
   formations.forEach(function(f){if(f.stagiaires)f.stagiaires.forEach(function(s){rows.push({nom:s,entreprise:f.entreprise,module:f.module,date:f.date,cS:f.convocSent,pS:f.preformSent,st:f.statut});});});
   var tbody=document.getElementById('s-tbody');
@@ -1129,8 +1159,29 @@ function loadParamsUI(){
   document.getElementById('cfg-lien').value        =mailCfg.lienPEM;
   document.getElementById('cfg-sig').value         =mailCfg.sig;
   document.getElementById('cfg-sheets-url').value  =sheetsCfg.url;
+  document.getElementById('cfg-org-nom').value     =orgCfg.nom;
+  document.getElementById('cfg-org-email').value   =orgCfg.email;
+  renderFormateurEmails();
   updateBrevoStatus();updateSheetsStatus();
 }
+function renderFormateurEmails(){
+  document.getElementById('cfg-formateurs').innerHTML=FORMATEURS.map(function(n,i){
+    return '<div class="fg"><label>'+esc(n)+'</label><input type="email" id="cfg-fmail-'+i+'" placeholder="prenom.nom@solis-system.com" value="'+esc(emailFormateur(n))+'"></div>';
+  }).join('');
+}
+document.getElementById('btn-save-org').addEventListener('click',function(){
+  orgCfg.nom  =document.getElementById('cfg-org-nom').value.trim()||'Solis System';
+  orgCfg.email=document.getElementById('cfg-org-email').value.trim();
+  FORMATEURS.forEach(function(n,i){
+    var el=document.getElementById('cfg-fmail-'+i);
+    formateurEmails[n]=el?el.value.trim():'';
+  });
+  localStorage.setItem('lf_org_nom',orgCfg.nom);
+  localStorage.setItem('lf_org_email',orgCfg.email);
+  localStorage.setItem('lf_formateur_emails',JSON.stringify(formateurEmails));
+  scanMails();renderMailList();
+  alert('Organisme et formateurs sauvegardes !');
+});
 document.getElementById('btn-save-cfg').addEventListener('click',function(){
   mailCfg.brevoKey  =document.getElementById('cfg-brevo-key').value.trim();
   mailCfg.fromEmail =document.getElementById('cfg-from-email').value.trim();
@@ -1214,6 +1265,13 @@ function scanMails(){
     var jA=Math.round((df-today)/86400000);
     var jP=Math.round((today-df)/86400000);
     var st=f.stagiaires||[];
+    if(jA===0&&new Date().getHours()>=RAPPEL_HEURE&&f.statut!=='en-cours'&&f.statut!=='terminee'){
+      var mailForm=emailFormateur(f.formateur);
+      if(mailForm&&!f.demarrageSent&&!alreadySent(f.id,'demarrage',f.formateur))
+        mailQueue.push(buildMail('demarrage',f,f.formateur,0,{toEmail:mailForm,flag:'demarrageSent'}));
+      if(orgCfg.email&&!f.demarrageOrgSent&&!alreadySent(f.id,'demarrage',orgCfg.nom))
+        mailQueue.push(buildMail('demarrage',f,orgCfg.nom,0,{toEmail:orgCfg.email,flag:'demarrageOrgSent'}));
+    }
     if(!f.preformSent&&jA<=3&&jA>=0&&f.statut!=='terminee')st.forEach(function(s){if(!alreadySent(f.id,'preform',s))mailQueue.push(buildMail('preform',f,s,jA));});
     if(!f.convocSent&&jA<=2&&jA>=0&&f.statut!=='terminee'){st.forEach(function(s){if(!alreadySent(f.id,'convoc',s))mailQueue.push(buildMail('convoc',f,s,jA));});if(f.email&&!alreadySent(f.id,'resp',f.contact||'resp'))mailQueue.push(buildMail('resp',f,f.contact||'Responsable',jA));}
     if(f.mode==='A distance'&&!f.liensent&&jA<=1&&jA>=0&&f.statut!=='terminee')st.forEach(function(s){if(!alreadySent(f.id,'lien',s))mailQueue.push(buildMail('lien',f,s,jA));});
@@ -1221,19 +1279,21 @@ function scanMails(){
     if(f.statut==='terminee'&&!f.satFormateurSent&&jP>=7){if(!alreadySent(f.id,'sat-form',f.formateur))mailQueue.push(buildMail('sat-form',f,f.formateur,jP));}
   });
   updateMailBadge();
+  autoSendRappels();
 }
 function alreadySent(fid,type,dest){return sentMails.some(function(m){return m.fid===fid&&m.type===type&&m.dest===dest;});}
 
 function resolveVars(text,vars){return text.replace(/\{\{([a-z_]+)\}\}/g,function(m,k){return vars.hasOwnProperty(k)?vars[k]:m;});}
 function buildVars(f,dest){return{prenom:dest||'',module:f.module||'',date:fmtDate(f.date),formateur:f.formateur||'',entreprise:f.entreprise||'',stagiaires:(f.stagiaires||[]).join(', ')||'—',lien_pem:mailCfg.lienPEM||'[Inserer le lien]',signature:mailCfg.sig||''};}
 
-function buildMail(type,f,dest,jours){
+function buildMail(type,f,dest,jours,opts){
+  opts=opts||{};
   var t=templates[type]||TPL_DEFAULTS[type];
   var vars=buildVars(f,dest);
   var subj=resolveVars(t.subj,vars);
   var body=resolveVars(t.body,vars);
-  var urgMap={preform:jours<=1?'hot':'soon',convoc:jours<=1?'hot':'soon',resp:jours<=1?'hot':'soon',lien:'hot','sat-stag':'ok','sat-form':'ok'};
-  return{id:Date.now()+Math.random(),fid:f.id,fLabel:f.module+' - '+f.entreprise,type:type,dest:dest,toEmail:f.email||'',ico:t.ico,css:t.css,label:t.label,urgency:urgMap[type]||'ok',subject:subj,body:body,brevoId:t.brevoId||'',vars:vars,sent:false};
+  var urgMap={demarrage:'hot',preform:jours<=1?'hot':'soon',convoc:jours<=1?'hot':'soon',resp:jours<=1?'hot':'soon',lien:'hot','sat-stag':'ok','sat-form':'ok'};
+  return{id:Date.now()+Math.random(),fid:f.id,fLabel:f.module+' - '+f.entreprise,type:type,dest:dest,toEmail:opts.toEmail||f.email||'',flag:opts.flag||'',ico:t.ico,css:t.css,label:t.label,urgency:urgMap[type]||'ok',subject:subj,body:body,brevoId:t.brevoId||'',vars:vars,sent:false};
 }
 
 // ── RENDER MAIL LIST ──────────────────────────────────────────
@@ -1317,29 +1377,54 @@ document.getElementById('btn-toggle-edit').addEventListener('click',function(){
 });
 
 // ── ENVOI BREVO ───────────────────────────────────────────────
+function brevoSend(mail,vars){
+  var to=mail.toEmail||'';
+  if(!to)return Promise.reject(new Error('Pas d\'email pour '+mail.dest));
+  if(!mailCfg.brevoKey)return Promise.reject(new Error('Cle Brevo non configuree'));
+  var t=templates[mail.type]||{};
+  var payload;
+  if(t.brevoId){
+    payload={sender:{name:mailCfg.fromName,email:mailCfg.fromEmail},to:[{email:to,name:mail.dest}],templateId:parseInt(t.brevoId),params:vars||mail.vars};
+  }else{
+    var hb=mail.body.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+    payload={sender:{name:mailCfg.fromName,email:mailCfg.fromEmail},to:[{email:to,name:mail.dest}],subject:mail.subject,textContent:mail.body,htmlContent:'<div style="font-family:Arial,sans-serif;font-size:14px;line-height:1.8;color:#18181b;max-width:600px;margin:0 auto;padding:20px">'+hb+'</div>'};
+  }
+  return fetch('https://api.brevo.com/v3/smtp/email',{method:'POST',headers:{'api-key':mailCfg.brevoKey,'Content-Type':'application/json','accept':'application/json'},body:JSON.stringify(payload)})
+    .then(function(r){
+      if(r.ok)return true;
+      return r.json().then(function(d){throw new Error(d.message||JSON.stringify(d));});
+    });
+}
+
+// Rappels de demarrage : envoyes sans intervention le matin de la formation.
+var autoRappelBusy=false;
+function autoSendRappels(){
+  if(autoRappelBusy||!mailCfg.brevoKey)return;
+  var pend=mailQueue.filter(function(m){return m.type==='demarrage'&&m.toEmail;});
+  if(!pend.length)return;
+  autoRappelBusy=true;
+  pend.reduce(function(chain,m){
+    return chain.then(function(){
+      return brevoSend(m,m.vars).then(function(){markSent(m);})
+        .catch(function(e){ // on laisse le mail en file pour un envoi manuel
+          console.warn('Rappel demarrage non envoye a '+m.dest+' : '+e.message);
+        });
+    });
+  },Promise.resolve()).then(function(){
+    autoRappelBusy=false;renderMailList();
+  });
+}
+
 document.getElementById('btn-send-brevo').addEventListener('click',function(){
   if(!currentMail)return;
   refreshMailPreview();
-  var to=currentMail.toEmail||'';
-  if(!to){alert('Pas d\'email pour '+currentMail.dest+'.\nRenseignez-le dans la fiche formation.');return;}
+  if(!currentMail.toEmail){alert('Pas d\'email pour '+currentMail.dest+'.\nRenseignez-le dans la fiche formation.');return;}
   if(!mailCfg.brevoKey){if(confirm('Cle Brevo non configuree. Ouvrir les Parametres ?')){closeOv('overlay-mail');goTab('parametres');}return;}
   var btn=this;
   document.getElementById('btn-send-label').textContent='Envoi...';btn.disabled=true;
-  var t=templates[currentMail.type]||{};
-  var vars=getEditedVars();
-  var payload;
-  if(t.brevoId){
-    payload={sender:{name:mailCfg.fromName,email:mailCfg.fromEmail},to:[{email:to,name:currentMail.dest}],templateId:parseInt(t.brevoId),params:vars};
-  }else{
-    var hb=currentMail.body.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
-    payload={sender:{name:mailCfg.fromName,email:mailCfg.fromEmail},to:[{email:to,name:currentMail.dest}],subject:currentMail.subject,textContent:currentMail.body,htmlContent:'<div style="font-family:Arial,sans-serif;font-size:14px;line-height:1.8;color:#18181b;max-width:600px;margin:0 auto;padding:20px">'+hb+'</div>'};
-  }
-  fetch('https://api.brevo.com/v3/smtp/email',{method:'POST',headers:{'api-key':mailCfg.brevoKey,'Content-Type':'application/json','accept':'application/json'},body:JSON.stringify(payload)})
-    .then(function(r){
-      if(r.ok){markSent(currentMail);closeOv('overlay-mail');renderMailList();}
-      else return r.json().then(function(d){alert('Erreur Brevo : '+(d.message||JSON.stringify(d)));document.getElementById('btn-send-label').textContent='Envoyer via Brevo';btn.disabled=false;});
-    })
-    .catch(function(e){alert('Erreur reseau : '+e);document.getElementById('btn-send-label').textContent='Envoyer via Brevo';btn.disabled=false;});
+  brevoSend(currentMail,getEditedVars())
+    .then(function(){markSent(currentMail);closeOv('overlay-mail');renderMailList();})
+    .catch(function(e){alert('Erreur Brevo : '+e.message);document.getElementById('btn-send-label').textContent='Envoyer via Brevo';btn.disabled=false;});
 });
 document.getElementById('btn-mark-sent-manual').addEventListener('click',function(){if(!currentMail)return;if(!confirm('Marquer envoye manuellement ?'))return;markSent(currentMail);closeOv('overlay-mail');renderMailList();});
 document.getElementById('btn-close-modal-mail').addEventListener('click',function(){closeOv('overlay-mail');});
@@ -1350,7 +1435,7 @@ function markSent(mail){
   var qi=mailQueue.findIndex(function(m){return m.id===mail.id;});
   if(qi>=0){mailQueue.splice(qi,1);sentMails.push(mail);}
   var f=formations.find(function(x){return x.id===mail.fid;});
-  if(f){if(mail.type==='convoc')f.convocSent=true;if(mail.type==='preform')f.preformSent=true;if(mail.type==='lien')f.liensent=true;if(mail.type==='sat-stag')f.satSent=true;if(mail.type==='sat-form')f.satFormateurSent=true;}
+  if(f){if(mail.type==='convoc')f.convocSent=true;if(mail.type==='preform')f.preformSent=true;if(mail.type==='lien')f.liensent=true;if(mail.type==='sat-stag')f.satSent=true;if(mail.type==='sat-form')f.satFormateurSent=true;if(mail.flag)f[mail.flag]=true;}
   pushActivity('Mail envoye : '+mail.label+' > '+mail.dest,'&#128228;','tico-teal');
   updateMailBadge();renderDashboard();pushToSheets();
 }
@@ -1379,16 +1464,6 @@ document.querySelectorAll('.overlay').forEach(function(ov){ov.addEventListener('
 
 // ── HELPERS ───────────────────────────────────────────────────
 function todayISO(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);}
-// Une formation dont la date est arrivee passe automatiquement en cours,
-// tant qu'elle n'a pas ete marquee terminee.
-function syncStatuts(){
-  var t=todayISO();
-  formations.forEach(function(f){
-    if(f.statut!=='planifiee'&&f.statut!=='convocations')return;
-    var d=f.date?f.date.toString().split('T')[0]:'';
-    if(d&&d<=t)f.statut='en-cours';
-  });
-}
 function fmtDate(d){if(!d)return'—';try{var p=d.toString().split('T')[0].split('-');return p[2]+'/'+p[1]+'/'+p[0];}catch(e){return String(d);}}
 function statusBadge(s){var m={planifiee:'<span class="badge b-grey">Planifiee</span>',convocations:'<span class="badge b-blue">Convocations</span>','en-cours':'<span class="badge b-teal">En cours</span>',terminee:'<span class="badge b-green">Terminee</span>'};return m[s]||s;}
 function esc(str){return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
@@ -1398,6 +1473,8 @@ updateBrevoStatus();
 updateSheetsStatus();
 renderDashboard();
 scanMails();
+// Re-scan periodique : declenche le rappel de 8h si l'app reste ouverte.
+setInterval(scanMails,5*60*1000);
 // Auto-pull si Sheets configure
 if(sheetsCfg.url){ pullFromSheets(); }
 </script>
