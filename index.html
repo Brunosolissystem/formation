@@ -418,9 +418,9 @@ pre{background:var(--ink);color:#e4e4e7;border-radius:var(--rs);padding:14px 16p
   <div class="tab" id="tab-formateurs">
     <div class="sec">Equipe</div>
     <div class="three-col">
-      <div class="card"><div style="display:flex;align-items:center;gap:10px;margin-bottom:14px"><div style="width:38px;height:38px;border-radius:50%;background:var(--teal-p);display:flex;align-items:center;justify-content:center;font-size:1.1rem">&#128105;</div><div><div style="font-weight:600">Aurelien Bahnous</div><div style="font-size:.72rem;color:var(--ink-light)">Formateur</div></div></div><div style="display:flex;flex-wrap:wrap;gap:5px"><span class="badge b-teal">Module Tarif</span><span class="badge b-teal">Comptabilite</span></div></div>
-      <div class="card"><div style="display:flex;align-items:center;gap:10px;margin-bottom:14px"><div style="width:38px;height:38px;border-radius:50%;background:var(--teal-p);display:flex;align-items:center;justify-content:center;font-size:1.1rem">&#128104;</div><div><div style="font-weight:600">Sebastien Curnillon</div><div style="font-size:.72rem;color:var(--ink-light)">Responsable Formation</div></div></div><div style="display:flex;flex-wrap:wrap;gap:5px"><span class="badge b-teal">Tous modules</span><span class="badge b-violet">Commercial</span></div></div>
-      <div class="card"><div style="display:flex;align-items:center;gap:10px;margin-bottom:14px"><div style="width:38px;height:38px;border-radius:50%;background:var(--teal-p);display:flex;align-items:center;justify-content:center;font-size:1.1rem">&#128104;</div><div><div style="font-weight:600">Bruno Cadene</div><div style="font-size:.72rem;color:var(--ink-light)">Directeur Administratif</div></div></div><div style="display:flex;flex-wrap:wrap;gap:5px"><span class="badge b-teal">Tous modules</span><span class="badge b-blue">Gestion admin.</span></div></div>
+      <div class="card"><div style="display:flex;align-items:center;gap:10px;margin-bottom:14px"><div style="width:38px;height:38px;border-radius:50%;background:var(--teal-p);display:flex;align-items:center;justify-content:center;font-size:1.1rem">&#128105;</div><div><div style="font-weight:600">Aurelien Bahnous</div><div style="font-size:.72rem;color:var(--ink-light)">Formateur</div></div></div><div style="display:flex;flex-wrap:wrap;gap:5px"><span class="badge b-teal">Module Tarif</span><span class="badge b-teal">Comptabilite</span></div><div class="fg" style="margin-top:12px"><label>Email</label><input type="email" class="fm-email" data-formateur="Aurelien Bahnous" placeholder="prenom.nom@solis-system.com"></div></div>
+      <div class="card"><div style="display:flex;align-items:center;gap:10px;margin-bottom:14px"><div style="width:38px;height:38px;border-radius:50%;background:var(--teal-p);display:flex;align-items:center;justify-content:center;font-size:1.1rem">&#128104;</div><div><div style="font-weight:600">Sebastien Curnillon</div><div style="font-size:.72rem;color:var(--ink-light)">Responsable Formation</div></div></div><div style="display:flex;flex-wrap:wrap;gap:5px"><span class="badge b-teal">Tous modules</span><span class="badge b-violet">Commercial</span></div><div class="fg" style="margin-top:12px"><label>Email</label><input type="email" class="fm-email" data-formateur="Sebastien Curnillon" placeholder="prenom.nom@solis-system.com"></div></div>
+      <div class="card"><div style="display:flex;align-items:center;gap:10px;margin-bottom:14px"><div style="width:38px;height:38px;border-radius:50%;background:var(--teal-p);display:flex;align-items:center;justify-content:center;font-size:1.1rem">&#128104;</div><div><div style="font-weight:600">Bruno Cadene</div><div style="font-size:.72rem;color:var(--ink-light)">Directeur Administratif</div></div></div><div style="display:flex;flex-wrap:wrap;gap:5px"><span class="badge b-teal">Tous modules</span><span class="badge b-blue">Gestion admin.</span></div><div class="fg" style="margin-top:12px"><label>Email</label><input type="email" class="fm-email" data-formateur="Bruno Cadene" placeholder="prenom.nom@solis-system.com"></div></div>
     </div>
   </div>
 
@@ -757,6 +757,8 @@ var mailCfg={
   sig:       localStorage.getItem('lf_sig')        ||"Cordialement,\nL'equipe Solis System\n04 66 29 18 07",
   lienPEM:   localStorage.getItem('lf_lien')       ||''
 };
+// Emails des formateurs (destinataires du bilan formateur), par nom
+var formateurEmails=(function(){try{return JSON.parse(localStorage.getItem('lf_formateur_emails'))||{};}catch(e){return {};}})();
 
 var sheetsCfg={
   url: localStorage.getItem('lf_sheets_url')||''
@@ -1125,6 +1127,17 @@ document.querySelectorAll('.var-chip').forEach(function(chip){
 });
 
 // ── PARAMETRES ────────────────────────────────────────────────
+// ── FORMATEURS : emails ───────────────────────────────────────
+document.querySelectorAll('.fm-email').forEach(function(el){
+  el.value=formateurEmails[el.dataset.formateur]||'';
+  el.addEventListener('change',function(){
+    var v=el.value.trim();
+    if(v)formateurEmails[el.dataset.formateur]=v;else delete formateurEmails[el.dataset.formateur];
+    localStorage.setItem('lf_formateur_emails',JSON.stringify(formateurEmails));
+    scanMails();
+  });
+});
+
 function loadParamsUI(){
   document.getElementById('cfg-brevo-key').value  =mailCfg.brevoKey;
   document.getElementById('cfg-from-email').value =mailCfg.fromEmail;
@@ -1232,13 +1245,16 @@ function alreadySent(fid,type,dest){return sentMails.some(function(m){return m.f
 function resolveVars(text,vars){return text.replace(/\{\{([a-z_]+)\}\}/g,function(m,k){return vars.hasOwnProperty(k)?vars[k]:m;});}
 function buildVars(f,dest){return{prenom:dest||'',module:f.module||'',date:fmtDate(f.date),formateur:f.formateur||'',entreprise:f.entreprise||'',stagiaires:(f.stagiaires||[]).join(', ')||'—',lien_pem:mailCfg.lienPEM||'[Inserer le lien]',signature:mailCfg.sig||''};}
 
+// Le bilan formateur part au formateur ; les autres mails a l'email de la fiche formation
+function mailToEmail(type,f){return type==='sat-form'?(formateurEmails[f.formateur]||''):(f.email||'');}
+
 function buildMail(type,f,dest,jours){
   var t=templates[type]||TPL_DEFAULTS[type];
   var vars=buildVars(f,dest);
   var subj=resolveVars(t.subj,vars);
   var body=resolveVars(t.body,vars);
   var urgMap={preform:jours<=1?'hot':'soon',convoc:jours<=1?'hot':'soon',resp:jours<=1?'hot':'soon',lien:'hot','sat-stag':'ok','sat-form':'ok'};
-  return{id:Date.now()+Math.random(),fid:f.id,fLabel:f.module+' - '+f.entreprise,type:type,dest:dest,toEmail:f.email||'',ico:t.ico,css:t.css,label:t.label,urgency:urgMap[type]||'ok',subject:subj,body:body,brevoId:t.brevoId||'',vars:vars,sent:false};
+  return{id:Date.now()+Math.random(),fid:f.id,fLabel:f.module+' - '+f.entreprise,type:type,dest:dest,toEmail:mailToEmail(type,f),ico:t.ico,css:t.css,label:t.label,urgency:urgMap[type]||'ok',subject:subj,body:body,brevoId:t.brevoId||'',vars:vars,sent:false};
 }
 
 // ── RENDER MAIL LIST ──────────────────────────────────────────
@@ -1326,7 +1342,7 @@ document.getElementById('btn-send-brevo').addEventListener('click',function(){
   if(!currentMail)return;
   refreshMailPreview();
   var to=currentMail.toEmail||'';
-  if(!to){alert('Pas d\'email pour '+currentMail.dest+'.\nRenseignez-le dans la fiche formation.');return;}
+  if(!to){alert('Pas d\'email pour '+currentMail.dest+'.\nRenseignez-le '+(currentMail.type==='sat-form'?'dans l\'onglet Formateurs.':'dans la fiche formation.'));return;}
   if(!mailCfg.brevoKey){if(confirm('Cle Brevo non configuree. Ouvrir les Parametres ?')){closeOv('overlay-mail');goTab('parametres');}return;}
   var btn=this;
   document.getElementById('btn-send-label').textContent='Envoi...';btn.disabled=true;
